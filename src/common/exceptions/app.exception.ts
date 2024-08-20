@@ -1,12 +1,12 @@
 import { errorTools } from "../helpers/error-tools";
-import { ExceptionBase } from "../abstracts/exception.base";
+import { BaseException } from "../abstracts/exception.base";
 
-import type { CommonModule } from "@types";
+import type { CommonTypes } from "@types";
 
-export class AppException extends ExceptionBase {
+export class AppException extends BaseException {
   constructor(
-    description: CommonModule.Payload.DescriptionCodes,
-    code: CommonModule.Payload.StatusCodes,
+    description: CommonTypes.DescriptionCodes,
+    code: CommonTypes.StatusCodes,
     message: string,
     detail: string,
     error?: Error | AggregateError | unknown,

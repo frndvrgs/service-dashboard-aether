@@ -1,72 +1,65 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
-import { SettingsService } from "../../settings.service";
-
-import type { PrismaClientOptions } from "@prisma/client/runtime/library";
-import type { Prisma } from "@prisma/client";
+import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { DataSource } from "typeorm";
+import { ServerException } from "../../../common/exceptions/server.exception";
+import { logger } from "../../../common/helpers/logger";
+import { databaseTools } from "../../../common/helpers/database-tools";
+import { SettingsService } from "../settings/settings.service";
 
 @Injectable()
-export class DatabaseService
-  extends PrismaClient<
-    Prisma.PrismaClientOptions,
-    "query" | "info" | "warn" | "error"
-  >
-  implements OnModuleInit, OnModuleDestroy
-{
-  private readonly logger = new Logger(DatabaseService.name);
+export class DatabaseService implements OnModuleInit, OnModuleDestroy {
+  private dataSources: Map<string, DataSource> = new Map();
 
-  constructor(settingsService: SettingsService) {
-    const config: Prisma.Subset<
-      Prisma.PrismaClientOptions,
-      PrismaClientOptions
-    > = {
-      log: [
-        { emit: "event", level: "query" },
-        { emit: "event", level: "info" },
-        { emit: "event", level: "warn" },
-        { emit: "event", level: "error" },
-      ],
-      datasources: {
-        db: {
-          url: settingsService.database.url,
-        },
-      },
-    };
+  constructor(private settingsService: SettingsService) {}
 
-    super(config);
+  private async initializeDataSources() {
+    const { modules } = this.settingsService.database;
+    const { createConnectionMessage } = databaseTools;
+    for (const [moduleName, options] of Object.entries(modules)) {
+      try {
+        const dataSource = new DataSource(options);
+        logger.info(createConnectionMessage(options, "testing"));
+        await dataSource.initialize();
+        this.dataSources.set(moduleName, dataSource);
+        logger.info(createConnectionMessage(options, "success"));
+      } catch (err) {
+        logger.error(createConnectionMessage(options, "failure"));
+        throw err;
+      }
+    }
   }
 
-  async onModuleInit() {
-    await this.$connect();
-    this.setupEventListeners();
+  public async getDataSource(module: string): Promise<DataSource> {
+    const dataSource = this.dataSources.get(module);
+    if (!dataSource) {
+      throw new ServerException(
+        "DATABASE_CLIENT_ERROR",
+        500,
+        `datasource for module ${module} not found.`,
+        "DatabaseService.getDataSource()",
+      );
+    }
+    return dataSource;
   }
 
-  async onModuleDestroy() {
-    await this.$disconnect();
+  public async onModuleInit() {
+    try {
+      await this.initializeDataSources();
+      logger.info(":: database connection pools checked.");
+    } catch (err) {
+      throw new ServerException(
+        "DATABASE_CLIENT_ERROR",
+        500,
+        "database service internal error.",
+        "DatabaseClient.verify()",
+        err,
+      );
+    }
   }
 
-  private setupEventListeners() {
-    this.$on("query", (event: Prisma.QueryEvent) => {
-      this.logger.debug(`Query: ${event.query}`);
-      this.logger.debug(`Params: ${event.params}`);
-      this.logger.debug(`Duration: ${event.duration}ms`);
-    });
-
-    this.$on("info", (event: Prisma.LogEvent) => {
-      this.logger.log(`Prisma info: ${event.message}`);
-    });
-
-    this.$on("warn", (event: Prisma.LogEvent) => {
-      this.logger.warn(`Prisma warning: ${event.message}`);
-    });
-
-    this.$on("error", (event: Prisma.LogEvent) => {
-      this.logger.error(`Prisma error: ${event.message}`);
-    });
+  public async onModuleDestroy() {
+    for (const dataSource of this.dataSources.values()) {
+      await dataSource.destroy();
+    }
+    logger.info(":: database connection pools cleaned.");
   }
 }

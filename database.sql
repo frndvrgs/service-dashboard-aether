@@ -9,18 +9,32 @@ WITH ENCODING 'UTF8'
 \connect aether_service_dashboard;
 
 DROP SCHEMA public;
-DROP ROLE aether_service;
+DROP ROLE IF EXISTS aether_common;
+DROP ROLE IF EXISTS aether_account;
+DROP ROLE IF EXISTS aether_product;
+DROP ROLE IF EXISTS aether_content;
 
-CREATE ROLE aether_service WITH LOGIN PASSWORD '123456';
+--------------------------------------------------------------------------------
+-- COMMON MODULE
+--------------------------------------------------------------------------------
 
-CREATE SCHEMA service_schema AUTHORIZATION aether_service;
-ALTER SCHEMA service_schema OWNER TO aether_service;
+CREATE ROLE aether_common WITH LOGIN PASSWORD '123456';
+
+CREATE SCHEMA common_read_schema AUTHORIZATION aether_common;
+ALTER SCHEMA common_read_schema OWNER TO aether_common;
 
 --------------------------------------------------------------------------------
 -- ACCOUNT MODULE
 --------------------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS service_schema.account (
+CREATE ROLE aether_account WITH LOGIN PASSWORD '123456';
+
+CREATE SCHEMA account_data_schema AUTHORIZATION aether_account;
+ALTER SCHEMA account_data_schema OWNER TO aether_account;
+
+---- DATA SCHEMA TABLES
+
+CREATE TABLE IF NOT EXISTS account_data_schema.account (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_account UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
@@ -31,15 +45,15 @@ CREATE TABLE IF NOT EXISTS service_schema.account (
   document JSONB DEFAULT '{}'::JSONB
 );
 
-ALTER TABLE service_schema.account OWNER TO aether_service;
+ALTER TABLE account_data_schema.account OWNER TO aether_account;
 
 CREATE UNIQUE INDEX account_id_account_idx
-  ON service_schema.account (id_account);
+  ON account_data_schema.account (id_account);
 
 CREATE UNIQUE INDEX account_email_idx
-  ON service_schema.account (email);
+  ON account_data_schema.account (email);
 
-CREATE TABLE IF NOT EXISTS service_schema.subscription (
+CREATE TABLE IF NOT EXISTS account_data_schema.subscription (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_subscription UUID NOT NULL,
   id_account UUID NOT NULL,
@@ -49,15 +63,17 @@ CREATE TABLE IF NOT EXISTS service_schema.subscription (
   status TEXT NOT NULL,
   document JSONB DEFAULT '{}'::JSONB,
   CONSTRAINT subscription_id_account_fkey FOREIGN KEY (id_account)
-    REFERENCES service_schema.account (id_account) ON DELETE CASCADE
+    REFERENCES account_data_schema.account (id_account) ON DELETE CASCADE
 );
 
-ALTER TABLE service_schema.subscription OWNER TO aether_service;
+ALTER TABLE account_data_schema.subscription OWNER TO aether_account;
 
 CREATE UNIQUE INDEX subscription_id_subscription_idx
-  ON service_schema.subscription (id_subscription);
+  ON account_data_schema.subscription (id_subscription);
 
-CREATE VIEW service_schema.account_view
+---- READ SCHEMA TABLE VIEWS
+
+CREATE VIEW common_read_schema.account
 AS SELECT
   id_account,
   created_at,
@@ -65,11 +81,11 @@ AS SELECT
   email,
   scope,
   document
-FROM service_schema.account;
+FROM account_data_schema.account;
 
-ALTER VIEW service_schema.account_view OWNER TO aether_service;
+ALTER VIEW common_read_schema.account OWNER TO aether_common;
 
-CREATE VIEW service_schema.subscription_view
+CREATE VIEW common_read_schema.subscription
 AS SELECT
   id_subscription,
   id_account,
@@ -78,15 +94,22 @@ AS SELECT
   type,
   status,
   document
-FROM service_schema.subscription;
+FROM account_data_schema.subscription;
 
-ALTER VIEW service_schema.subscription_view OWNER TO aether_service;
+ALTER VIEW common_read_schema.subscription OWNER TO aether_common;
 
 --------------------------------------------------------------------------------
 -- PRODUCT MODULE
 --------------------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS service_schema.work (
+CREATE ROLE aether_product WITH LOGIN PASSWORD '123456';
+
+CREATE SCHEMA product_data_schema AUTHORIZATION aether_product;
+ALTER SCHEMA product_data_schema OWNER TO aether_product;
+
+---- DATA SCHEMA TABLES
+
+CREATE TABLE IF NOT EXISTS product_data_schema.work (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_work UUID NOT NULL,
   id_account UUID NOT NULL,
@@ -97,15 +120,17 @@ CREATE TABLE IF NOT EXISTS service_schema.work (
   level NUMERIC(5, 2) NOT NULL,
   document JSONB DEFAULT '{}'::JSONB,
   CONSTRAINT work_id_account_fkey FOREIGN KEY (id_account)
-    REFERENCES service_schema.account (id_account) ON DELETE CASCADE
+    REFERENCES account_data_schema.account (id_account) ON DELETE CASCADE
 );
 
-ALTER TABLE service_schema.work OWNER TO aether_service;
+ALTER TABLE product_data_schema.work OWNER TO aether_product;
 
 CREATE UNIQUE INDEX product_id_work_idx
-  ON service_schema.work (id_work);
+  ON product_data_schema.work (id_work);
 
-CREATE VIEW service_schema.work_view
+---- READ SCHEMA TABLE VIEWS
+
+CREATE VIEW common_read_schema.work
 AS SELECT
   id_work,
   id_account,
@@ -115,15 +140,21 @@ AS SELECT
   name,
   level,
   document
-FROM service_schema.work;
+FROM product_data_schema.work;
 
-ALTER VIEW service_schema.work_view OWNER TO aether_service;
+ALTER VIEW common_read_schema.work OWNER TO aether_common;
 
 --------------------------------------------------------------------------------
 -- CONTENT MODULE
---------------------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS service_schema.profile (
+CREATE ROLE aether_content WITH LOGIN PASSWORD '123456';
+
+CREATE SCHEMA content_data_schema AUTHORIZATION aether_content;
+ALTER SCHEMA content_data_schema OWNER TO aether_content;
+
+---- DATA SCHEMA TABLES
+
+CREATE TABLE IF NOT EXISTS content_data_schema.profile (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_profile UUID NOT NULL,
   id_account UUID NOT NULL,
@@ -133,21 +164,21 @@ CREATE TABLE IF NOT EXISTS service_schema.profile (
   name TEXT NOT NULL,
   document JSONB DEFAULT '{}'::JSONB,
   CONSTRAINT profile_id_account_fkey FOREIGN KEY (id_account)
-    REFERENCES service_schema.account (id_account) ON DELETE CASCADE
+    REFERENCES account_data_schema.account (id_account) ON DELETE CASCADE
 );
 
-ALTER TABLE service_schema.profile OWNER TO aether_service;
+ALTER TABLE content_data_schema.profile OWNER TO aether_content;
 
 CREATE UNIQUE INDEX profile_id_profile_idx
-  ON service_schema.profile (id_profile);
+  ON content_data_schema.profile (id_profile);
 
 CREATE UNIQUE INDEX profile_id_account_idx
-  ON service_schema.profile (id_account);
+  ON content_data_schema.profile (id_account);
 
 CREATE UNIQUE INDEX profile_username_idx
-  ON service_schema.profile (username);
+  ON content_data_schema.profile (username);
 
-CREATE TABLE IF NOT EXISTS service_schema.feature (
+CREATE TABLE IF NOT EXISTS content_data_schema.feature (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_feature UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
@@ -157,9 +188,11 @@ CREATE TABLE IF NOT EXISTS service_schema.feature (
   document JSONB DEFAULT '{}'::JSONB
 );
 
-ALTER TABLE service_schema.feature OWNER TO aether_service;
+ALTER TABLE content_data_schema.feature OWNER TO aether_content;
 
-CREATE VIEW service_schema.profile_view
+---- READ SCHEMA VIEWS
+
+CREATE VIEW common_read_schema.profile
 AS SELECT
   id_profile,
   id_account,
@@ -168,11 +201,11 @@ AS SELECT
   username,
   name,
   document
-FROM service_schema.profile;
+FROM content_data_schema.profile;
 
-ALTER VIEW service_schema.profile_view OWNER TO aether_service;
+ALTER VIEW common_read_schema.profile OWNER TO aether_common;
 
-CREATE VIEW service_schema.feature_view
+CREATE VIEW common_read_schema.feature
 AS SELECT
   id_feature,
   created_at,
@@ -180,6 +213,6 @@ AS SELECT
   name,
   subscription_scope,
   document
-FROM service_schema.feature;
+FROM content_data_schema.feature;
 
-ALTER VIEW service_schema.feature_view OWNER TO aether_service;
+ALTER VIEW common_read_schema.feature OWNER TO aether_common;

@@ -1,6 +1,6 @@
 import { logger } from "./logger";
 
-import type { CommonModule } from "@types";
+import type { CommonTypes } from "@types";
 
 interface FormattedError {
   error: {
@@ -18,8 +18,8 @@ interface FormattedErrorList {
 
 interface LogErrorInput {
   name?: string;
-  description?: CommonModule.Payload.DescriptionCodes;
-  code?: CommonModule.Payload.StatusCodes;
+  description?: CommonTypes.DescriptionCodes;
+  code?: CommonTypes.StatusCodes;
   message?: string;
   detail?: string;
   context?: string;
@@ -28,7 +28,8 @@ interface LogErrorInput {
 }
 
 const format = (
-  errorObject: unknown | Error | AggregateError,
+  // errorObject: unknown | Error | AggregateError,
+  errorObject: unknown | Error,
 ): FormattedError | FormattedErrorList | null => {
   const clear = (line: string) =>
     line.replace(/^\s+at\s+/, "").replace(/\r?\n|\r/g, " ");
@@ -44,11 +45,18 @@ const format = (
     stack: error.stack && clearStack(error.stack),
   });
 
-  if (errorObject instanceof AggregateError) {
-    return {
-      error: errorObject.errors.map((err) => mount(err)),
-    };
-  } else if (errorObject instanceof Error) {
+  // if (errorObject instanceof AggregateError) {
+  //   return {
+  //     error: errorObject.errors.map((err) => mount(err)),
+  //   };
+  // } else if (errorObject instanceof Error) {
+  //   return {
+  //     error: mount(errorObject),
+  //   };
+  // } else {
+  //   return null;
+  // }
+  if (errorObject instanceof Error) {
     return {
       error: mount(errorObject),
     };

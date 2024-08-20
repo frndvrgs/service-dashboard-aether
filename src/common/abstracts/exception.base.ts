@@ -1,19 +1,20 @@
 import { errorTools } from "../helpers/error-tools";
 
-import type { CommonModule } from "@types";
+import type { StatusModel } from "../interface/common.model";
 
-abstract class ExceptionBase extends Error {
-  public status: CommonModule.DTO.StatusModel;
+import type { CommonTypes } from "@types";
+
+export abstract class BaseException extends Error {
+  public status: StatusModel;
   constructor(
     name: string,
-    description: CommonModule.Payload.DescriptionCodes,
-    code: CommonModule.Payload.StatusCodes,
+    description: CommonTypes.DescriptionCodes,
+    code: CommonTypes.StatusCodes,
     message: string,
     detail: string,
     context: string,
     scope: string,
     error?: Error | AggregateError | unknown | null,
-    validation?: CommonModule.Payload.Exception.ValidationObject,
   ) {
     super(message);
     this.name = name;
@@ -24,7 +25,6 @@ abstract class ExceptionBase extends Error {
       detail,
       context,
       scope,
-      validation,
     };
 
     // check for Error object and log it on the console
@@ -38,5 +38,3 @@ abstract class ExceptionBase extends Error {
     }
   }
 }
-
-export { ExceptionBase };

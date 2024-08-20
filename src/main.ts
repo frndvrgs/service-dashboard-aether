@@ -1,4 +1,4 @@
-import { loadSettings } from "./core/settings.loader";
+import { loadSettings } from "./core/services/settings/settings.loader";
 import { logger } from "./common/helpers/logger";
 
 import { webServer } from "./core/services/web-server/web-server.service";

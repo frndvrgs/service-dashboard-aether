@@ -8,50 +8,49 @@ import type {
 import type { RateLimitPluginOptions } from "@fastify/rate-limit";
 import type { FastifyCookieOptions } from "@fastify/cookie";
 import type { WebsocketPluginOptions } from "@fastify/websocket";
+import type {
+  FindOperator,
+  DataSourceOptions,
+  FindOptionsWhere,
+} from "typeorm";
+
+import { DESCRIPTION_CODES, STATUS_CODES } from "./common/constants";
 
 // utility type
 type valueof<T> = T[keyof T];
 
-declare namespace CommonModule {
-  namespace DTO {
-    interface StatusModel {
-      description: Payload.DescriptionCodes;
-      code: Payload.StatusCodes;
-      message?: string;
-      detail?: string;
-      context: string;
-      scope?: string;
-      validation?: Payload.Exception.ValidationObject;
-    }
-
-    interface HttpStatusModel {
-      type: string;
-      name: string;
-      description: string;
-      code: number;
-      context?: string | null;
-      scope?: string | null;
-      message?: string | null;
-      detail?: string | null;
-      validation?: Payload.Exception.ValidationObject;
-    }
+declare namespace CommonTypes {
+  interface BaseEntity {
+    id: number;
   }
 
+  type DescriptionCodes = keyof typeof DESCRIPTION_CODES;
+  type StatusCodes = valueof<typeof STATUS_CODES>;
+
   namespace Payload {
-    type DescriptionCodes = keyof typeof DESCRIPTION_CODES;
-    type StatusCodes = valueof<typeof STATUS_CODES>;
+    interface QueryOptions<T> {
+      where?: FindOptionsWhere<T> | FindOptionsWhere<T>[];
+      order?: {
+        [P in keyof T]?:
+          | "ASC"
+          | "DESC"
+          | { direction: "ASC" | "DESC"; nulls?: "NULLS FIRST" | "NULLS LAST" };
+      };
+      relations?: string[];
+      select?: (keyof T)[];
+      skip?: number;
+      take?: number;
+      withDeleted?: boolean;
+      cache?: boolean | number;
+    }
 
-    namespace Exception {
-      type ValidationObject = ErrorObject[] | null | undefined;
-
-      interface Input {
-        description: Payload.DescriptionCodes;
-        code: Payload.StatusCodes;
-        message?: string;
-        detail?: string;
-        error?: Error | unknown;
-        errors?: AggregateError | unknown;
-      }
+    interface ExceptionInput {
+      description: DescriptionCodes;
+      code: StatusCodes;
+      message?: string;
+      detail?: string;
+      error?: Error | unknown;
+      errors?: AggregateError | unknown;
     }
   }
 
@@ -69,16 +68,18 @@ declare namespace CommonModule {
   }
 }
 
-declare namespace Core {
+declare namespace CoreTypes {
   namespace Settings {
     interface SettingsService {
       app: App;
       webServer: WebServer;
       database: Database;
+      session: Session;
     }
 
     interface App {
       name: string;
+      environment: string;
     }
     interface WebServer {
       host: string;
@@ -90,7 +91,7 @@ declare namespace Core {
         connectionTimeout: number;
         logger: boolean;
       };
-      // cookie: FastifyCookieOptions;
+      cookie: FastifyCookieOptions;
       api: {
         path: string;
       };
@@ -103,57 +104,34 @@ declare namespace Core {
       useRequestScope: boolean;
     }
 
-    // interface SessionCookie {
-    //   name: string;
-    //   options: SessionCookieOptions;
-    // }
-
-    // interface SessionCookieOptions {
-    //   path: string;
-    //   secure: boolean;
-    //   sameSite: boolean | "lax" | "strict" | "none" | undefined;
-    //   maxAge: number;
-    //   domain: string | undefined;
-    //   signed: boolean;
-    //   httpOnly: boolean;
-    // }
-
-    // interface Session {
-    //   tokenSecret: string;
-    //   auth: SessionCookie;
-    //   user: SessionCookie;
-    // }
-
-    // interface DatabaseModuleOptions {
-    //   port: number;
-    //   host: string;
-    //   user: string;
-    //   password: string;
-    //   database: string;
-    //   max: number;
-    //   connectionTimeoutMillis: number;
-    //   idleTimeoutMillis: number;
-    // }
-
-    // type DatabaseModuleNames = "account" | "product" | "content";
-    // type DatabaseTableNames =
-    //   | "account"
-    //   | "subscription"
-    //   | "profile"
-    //   | "feature"
-    //   | "work";
-
-    // type TableNamesForModule<T extends DatabaseModuleNames> =
-    //   T extends "account"
-    //     ? "account" | "subscription"
-    //     : T extends "product"
-    //       ? "work"
-    //       : T extends "content"
-    //         ? "profile" | "feature"
-    //         : never;
+    type DatabaseModuleNames = "account" | "content" | "product";
 
     type Database = {
       url: string;
+      modules: {
+        [K in DatabaseModuleNames]: DataSourceOptions & { name: K };
+      };
     };
+
+    interface SessionCookieOptions {
+      path: string;
+      secure: boolean;
+      sameSite: boolean | "lax" | "strict" | "none" | undefined;
+      maxAge: number;
+      domain: string | undefined;
+      signed: boolean;
+      httpOnly: boolean;
+    }
+
+    interface SessionCookie {
+      name: string;
+      options: SessionCookieOptions;
+    }
+
+    interface Session {
+      tokenSecret: string;
+      auth: SessionCookie;
+      user: SessionCookie;
+    }
   }
 }

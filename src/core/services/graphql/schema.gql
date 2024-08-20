@@ -1,0 +1,230 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Account {
+  created_at: DateTime
+  document: JSONObject
+  email: String
+  id_account: ID
+  scope: String
+  updated_at: DateTime
+}
+
+type AccountOutput {
+  output: Account
+  status: HttpStatusModel!
+}
+
+type AccountsOutput {
+  output: [Account!]
+  status: HttpStatusModel!
+}
+
+input CreateAccountInput {
+  email: String!
+  password: String!
+}
+
+input CreateFeatureInput {
+  name: String!
+  subscriptionScope: [String!]
+}
+
+input CreateProfileInput {
+  name: String!
+  username: String!
+}
+
+input CreateSubscriptionInput {
+  document: JSONObject
+  status: String!
+  type: String!
+}
+
+input CreateWorkInput {
+  level: Float!
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Feature {
+  created_at: DateTime
+  document: JSONObject
+  id_feature: ID
+  name: String
+  subscriptionScope: [String!]
+  updated_at: DateTime
+}
+
+type FeatureOutput {
+  output: Feature
+  status: HttpStatusModel!
+}
+
+type FeaturesOutput {
+  output: [Feature!]
+  status: HttpStatusModel!
+}
+
+type HttpStatusModel {
+  code: Int
+  context: String
+  description: String
+  detail: String
+  message: String
+  name: String
+  scope: String
+  type: String
+}
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+type Mutation {
+  createAccount(input: CreateAccountInput!): AccountOutput!
+  createFeature(input: CreateFeatureInput!): FeatureOutput!
+  createProfile(account: ID!, input: CreateProfileInput!): ProfileOutput!
+  createSubscription(account: ID!, input: CreateSubscriptionInput!): SubscriptionOutput!
+  createWork(account: ID!, feature: ID!, input: CreateWorkInput!): WorkOutput!
+  removeAccount(account: ID!): AccountOutput!
+  removeFeature(feature: ID!): FeatureOutput!
+  removeProfile(profile: ID!): ProfileOutput!
+  removeSubscription(subscription: ID!): SubscriptionOutput!
+  removeWork(work: ID!): WorkOutput!
+  updateAccount(account: ID!, input: UpdateAccountInput!): AccountOutput!
+  updateFeature(feature: ID!, input: UpdateFeatureInput!): FeatureOutput!
+  updateProfile(input: UpdateProfileInput!, profile: ID!): ProfileOutput!
+  updateSubscription(input: UpdateSubscriptionInput!, subscription: ID!): SubscriptionOutput!
+  updateWork(input: UpdateWorkInput!, work: ID!): WorkOutput!
+}
+
+input OptionsInput {
+  cache: Boolean
+  order: [OrderInput!]
+  relations: [String!]
+  select: [String!]
+  skip: Int
+  take: Int
+  where: [WhereInput!]
+  withDeleted: Boolean
+}
+
+input OrderInput {
+  direction: String!
+  field: String!
+  nulls: String
+}
+
+type Profile {
+  created_at: DateTime
+  document: JSONObject
+  id_account: ID
+  id_profile: ID
+  name: String
+  updated_at: DateTime
+  username: String
+}
+
+type ProfileOutput {
+  output: Profile
+  status: HttpStatusModel!
+}
+
+type ProfilesOutput {
+  output: [Profile!]
+  status: HttpStatusModel!
+}
+
+type Query {
+  listAccounts(options: OptionsInput): AccountsOutput!
+  listFeatures(options: OptionsInput): FeaturesOutput!
+  listProfiles(options: OptionsInput): ProfilesOutput!
+  listSubscriptions(options: OptionsInput): SubscriptionsOutput!
+  listWorks(options: OptionsInput): WorksOutput!
+  readAccount(options: OptionsInput!): AccountOutput
+  readFeature(options: OptionsInput!): FeatureOutput
+  readProfile(options: OptionsInput!): ProfileOutput
+  readSubscription(options: OptionsInput!): SubscriptionOutput
+  readWork(options: OptionsInput!): WorkOutput
+}
+
+type Subscription {
+  created_at: DateTime!
+  document: JSONObject!
+  id_account: ID!
+  id_subscription: ID!
+  status: String!
+  type: String!
+  updated_at: DateTime!
+}
+
+type SubscriptionOutput {
+  output: Subscription
+  status: HttpStatusModel!
+}
+
+type SubscriptionsOutput {
+  output: [Subscription!]
+  status: HttpStatusModel!
+}
+
+input UpdateAccountInput {
+  email: String!
+  password: String!
+}
+
+input UpdateFeatureInput {
+  name: String!
+  subscriptionScope: [String!]
+}
+
+input UpdateProfileInput {
+  name: String!
+  username: String!
+}
+
+input UpdateSubscriptionInput {
+  document: JSONObject
+  status: String!
+  type: String!
+}
+
+input UpdateWorkInput {
+  level: Float!
+  name: String!
+}
+
+input WhereInput {
+  conditions: [WhereInput!]
+  field: String
+  operator: String
+  value: String
+}
+
+type Work {
+  created_at: DateTime
+  document: JSONObject
+  id_account: ID
+  id_feature: ID
+  id_work: ID
+  level: Float
+  name: String
+  updated_at: DateTime
+}
+
+type WorkOutput {
+  output: Work
+  status: HttpStatusModel!
+}
+
+type WorksOutput {
+  output: [Work!]
+  status: HttpStatusModel!
+}
