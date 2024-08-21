@@ -1,39 +1,34 @@
 -- psql --host=localhost --port=5432 --username=postgres --echo-all --file=database.sql
 
-CREATE DATABASE aether_service_dashboard
+CREATE DATABASE service_dashboard_aether
 WITH ENCODING 'UTF8'
      LC_COLLATE 'en_US.UTF-8'
      LC_CTYPE 'en_US.UTF-8'
      TEMPLATE template0;
 
-\connect aether_service_dashboard;
+\connect service_dashboard_aether;
 
-DROP SCHEMA public;
-DROP ROLE IF EXISTS aether_common;
+DROP SCHEMA IF EXISTS public;
 DROP ROLE IF EXISTS aether_account;
 DROP ROLE IF EXISTS aether_product;
 DROP ROLE IF EXISTS aether_content;
 
---------------------------------------------------------------------------------
--- COMMON ROLE / SCHEMA
---------------------------------------------------------------------------------
+-- Create roles
+CREATE ROLE aether_account WITH LOGIN PASSWORD '### UPDATE ###';
+CREATE ROLE aether_product WITH LOGIN PASSWORD '### UPDATE ###';
+CREATE ROLE aether_content WITH LOGIN PASSWORD '### UPDATE ###';
 
-CREATE ROLE aether_common WITH LOGIN PASSWORD '123456';
+-- Grant necessary permissions
+GRANT ALL ON DATABASE service_dashboard_aether TO aether_account, aether_product, aether_content;
 
-CREATE SCHEMA common_read_schema AUTHORIZATION aether_common;
-ALTER SCHEMA common_read_schema OWNER TO aether_common;
+-- Connect as aether_account
+\connect service_dashboard_aether aether_account
 
---------------------------------------------------------------------------------
 -- ACCOUNT MODULE
---------------------------------------------------------------------------------
+CREATE SCHEMA account_data_schema;
+CREATE SCHEMA account_read_schema;
 
-CREATE ROLE aether_account WITH LOGIN PASSWORD '123456';
-
-CREATE SCHEMA account_data_schema AUTHORIZATION aether_account;
-ALTER SCHEMA account_data_schema OWNER TO aether_account;
-
----- DATA SCHEMA TABLES
-
+-- DATA SCHEMA TABLES
 CREATE TABLE IF NOT EXISTS account_data_schema.account (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_account UUID NOT NULL,
@@ -44,8 +39,6 @@ CREATE TABLE IF NOT EXISTS account_data_schema.account (
   scope TEXT DEFAULT 'user',
   document JSONB DEFAULT '{}'::JSONB
 );
-
-ALTER TABLE account_data_schema.account OWNER TO aether_account;
 
 CREATE UNIQUE INDEX account_id_account_idx
   ON account_data_schema.account (id_account);
@@ -66,14 +59,11 @@ CREATE TABLE IF NOT EXISTS account_data_schema.subscription (
     REFERENCES account_data_schema.account (id_account) ON DELETE CASCADE
 );
 
-ALTER TABLE account_data_schema.subscription OWNER TO aether_account;
-
 CREATE UNIQUE INDEX subscription_id_subscription_idx
   ON account_data_schema.subscription (id_subscription);
 
----- READ SCHEMA TABLE VIEWS
-
-CREATE VIEW common_read_schema.account
+-- READ SCHEMA TABLE VIEWS
+CREATE VIEW account_read_schema.account
 AS SELECT
   id_account,
   created_at,
@@ -83,9 +73,7 @@ AS SELECT
   document
 FROM account_data_schema.account;
 
-ALTER VIEW common_read_schema.account OWNER TO aether_common;
-
-CREATE VIEW common_read_schema.subscription
+CREATE VIEW account_read_schema.subscription
 AS SELECT
   id_subscription,
   id_account,
@@ -96,19 +84,14 @@ AS SELECT
   document
 FROM account_data_schema.subscription;
 
-ALTER VIEW common_read_schema.subscription OWNER TO aether_common;
+-- Connect as aether_product
+\connect service_dashboard_aether aether_product
 
---------------------------------------------------------------------------------
 -- PRODUCT MODULE
---------------------------------------------------------------------------------
+CREATE SCHEMA product_data_schema;
+CREATE SCHEMA product_read_schema;
 
-CREATE ROLE aether_product WITH LOGIN PASSWORD '123456';
-
-CREATE SCHEMA product_data_schema AUTHORIZATION aether_product;
-ALTER SCHEMA product_data_schema OWNER TO aether_product;
-
----- DATA SCHEMA TABLES
-
+-- DATA SCHEMA TABLES
 CREATE TABLE IF NOT EXISTS product_data_schema.work (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_work UUID NOT NULL,
@@ -118,19 +101,14 @@ CREATE TABLE IF NOT EXISTS product_data_schema.work (
   updated_at TIMESTAMPTZ NOT NULL,
   name TEXT NOT NULL,
   level NUMERIC(5, 2) NOT NULL,
-  document JSONB DEFAULT '{}'::JSONB,
-  CONSTRAINT work_id_account_fkey FOREIGN KEY (id_account)
-    REFERENCES account_data_schema.account (id_account) ON DELETE CASCADE
+  document JSONB DEFAULT '{}'::JSONB
 );
-
-ALTER TABLE product_data_schema.work OWNER TO aether_product;
 
 CREATE UNIQUE INDEX product_id_work_idx
   ON product_data_schema.work (id_work);
 
----- READ SCHEMA TABLE VIEWS
-
-CREATE VIEW common_read_schema.work
+-- READ SCHEMA TABLE VIEWS
+CREATE VIEW product_read_schema.work
 AS SELECT
   id_work,
   id_account,
@@ -142,18 +120,14 @@ AS SELECT
   document
 FROM product_data_schema.work;
 
-ALTER VIEW common_read_schema.work OWNER TO aether_common;
+-- Connect as aether_content
+\connect service_dashboard_aether aether_content
 
---------------------------------------------------------------------------------
 -- CONTENT MODULE
+CREATE SCHEMA content_data_schema;
+CREATE SCHEMA content_read_schema;
 
-CREATE ROLE aether_content WITH LOGIN PASSWORD '123456';
-
-CREATE SCHEMA content_data_schema AUTHORIZATION aether_content;
-ALTER SCHEMA content_data_schema OWNER TO aether_content;
-
----- DATA SCHEMA TABLES
-
+-- DATA SCHEMA TABLES
 CREATE TABLE IF NOT EXISTS content_data_schema.profile (
   id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   id_profile UUID NOT NULL,
@@ -162,12 +136,8 @@ CREATE TABLE IF NOT EXISTS content_data_schema.profile (
   updated_at TIMESTAMPTZ NOT NULL,
   username TEXT NOT NULL,
   name TEXT NOT NULL,
-  document JSONB DEFAULT '{}'::JSONB,
-  CONSTRAINT profile_id_account_fkey FOREIGN KEY (id_account)
-    REFERENCES account_data_schema.account (id_account) ON DELETE CASCADE
+  document JSONB DEFAULT '{}'::JSONB
 );
-
-ALTER TABLE content_data_schema.profile OWNER TO aether_content;
 
 CREATE UNIQUE INDEX profile_id_profile_idx
   ON content_data_schema.profile (id_profile);
@@ -188,11 +158,8 @@ CREATE TABLE IF NOT EXISTS content_data_schema.feature (
   document JSONB DEFAULT '{}'::JSONB
 );
 
-ALTER TABLE content_data_schema.feature OWNER TO aether_content;
-
----- READ SCHEMA VIEWS
-
-CREATE VIEW common_read_schema.profile
+-- READ SCHEMA VIEWS
+CREATE VIEW content_read_schema.profile
 AS SELECT
   id_profile,
   id_account,
@@ -203,9 +170,7 @@ AS SELECT
   document
 FROM content_data_schema.profile;
 
-ALTER VIEW common_read_schema.profile OWNER TO aether_common;
-
-CREATE VIEW common_read_schema.feature
+CREATE VIEW content_read_schema.feature
 AS SELECT
   id_feature,
   created_at,
@@ -215,4 +180,14 @@ AS SELECT
   document
 FROM content_data_schema.feature;
 
-ALTER VIEW common_read_schema.feature OWNER TO aether_common;
+-- Connect back as the original user (usually postgres)
+\connect service_dashboard_aether postgres
+
+-- Grant necessary permissions
+GRANT USAGE ON SCHEMA account_read_schema TO aether_product, aether_content;
+GRANT USAGE ON SCHEMA product_read_schema TO aether_account, aether_content;
+GRANT USAGE ON SCHEMA content_read_schema TO aether_account, aether_product;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA account_read_schema TO aether_product, aether_content;
+GRANT SELECT ON ALL TABLES IN SCHEMA product_read_schema TO aether_account, aether_content;
+GRANT SELECT ON ALL TABLES IN SCHEMA content_read_schema TO aether_account, aether_product;
