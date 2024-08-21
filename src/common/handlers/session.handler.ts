@@ -238,15 +238,11 @@ export class SessionHandler
         session.auth.options,
       );
 
-      console.log("## authCookie", authCookie);
-
       const userCookie = await this.unsignCookie(
         request,
         session.user.name,
         session.user.options,
       );
-
-      console.log("## userCookie", userCookie);
 
       if (!authCookie || !userCookie) {
         throw new Error("missing cookies");

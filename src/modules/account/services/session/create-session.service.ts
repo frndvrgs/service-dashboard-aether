@@ -26,14 +26,16 @@ export class CreateSessionService {
       );
     }
 
-    const verified = await argon2.verify(resource.password, input.password);
-    if (!verified) {
-      throw new AppException(
-        "INVALID_SESSION",
-        401,
-        "invalid credentials.",
-        "verification failed: email or password",
-      );
+    if (input.password) {
+      const verified = await argon2.verify(resource.password, input.password);
+      if (!verified) {
+        throw new AppException(
+          "INVALID_SESSION",
+          401,
+          "invalid credentials.",
+          "verification failed: email or password",
+        );
+      }
     }
 
     return {

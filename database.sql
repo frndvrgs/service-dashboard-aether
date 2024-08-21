@@ -15,7 +15,7 @@ DROP ROLE IF EXISTS aether_product;
 DROP ROLE IF EXISTS aether_content;
 
 --------------------------------------------------------------------------------
--- COMMON MODULE
+-- COMMON ROLE / SCHEMA
 --------------------------------------------------------------------------------
 
 CREATE ROLE aether_common WITH LOGIN PASSWORD '123456';
