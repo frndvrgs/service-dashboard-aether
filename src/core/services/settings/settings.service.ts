@@ -34,8 +34,8 @@ export class SettingsService {
 
   private loadWebServerSettings(): CoreTypes.Settings.WebServer {
     return {
-      host: this.configService.get<string>("WEB_HOST", "localhost"),
-      port: this.configService.get<number>("WEB_PORT", 20110),
+      host: this.configService.get<string>("NODE_ENV") === 'production' ? '0.0.0.0' : 'localhost',
+      port: this.configService.get<string>("NODE_ENV") === 'production' ? this.configService.get<number>("PORT", 3000) : this.configService.get<number>("DEVELOPMENT_PORT", 20110),
       fastify: {
         // https: this.configService.get<boolean>("WEB_HTTPS", false),
         // http2: this.configService.get<boolean>("WEB_HTTP2", false),

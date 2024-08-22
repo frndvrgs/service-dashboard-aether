@@ -2,7 +2,7 @@
   "name": "service-dashboard-aether",
   "description": "service-dashboard-aether",
   "scripts": {
-    "start": "nest start",
+    "start": "node dist/main.js",
     "start:dev": "nest start | pino-pretty",
     "start:watch": "nest start --watch | pino-pretty",
     "build": "nest build",
