@@ -1,8 +1,8 @@
 import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString, IsArray, ArrayNotEmpty } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { HttpStatusModel } from "../../../../common/interface/common.model";
+import { StatusOutput } from "../../../../common/interface/common.model";
 
 import { FeatureEntity } from "../../domain/feature.entity";
 
@@ -41,7 +41,9 @@ export class CreateFeatureInput {
   name!: string;
 
   @Field(() => [String], { nullable: true })
-  @IsString()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
   subscriptionScope!: string[];
 }
 
@@ -54,14 +56,15 @@ export class UpdateFeatureInput {
 
   @Field(() => [String], { nullable: true })
   @IsOptional()
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   subscriptionScope?: string[];
 }
 
 @ObjectType()
 export class FeatureOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => Feature, { nullable: true })
   output?: Feature;
@@ -69,8 +72,8 @@ export class FeatureOutput {
 
 @ObjectType()
 export class FeaturesOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => [Feature], { nullable: true })
   output?: Feature[];

@@ -8,7 +8,7 @@ import { InterfaceExceptionFilter } from "../../../common/filters/interface.exce
 import { AppExceptionFilter } from "../../../common/filters/app.exception.filter";
 import {
   Account,
-  CreateAccountInput,
+  UpsertAccountInput,
   UpdateAccountInput,
   AccountOutput,
   AccountsOutput,
@@ -32,7 +32,7 @@ export class AccountResolver {
     private session: SessionHandler,
     private listAccountsService: services.ListAccountsService,
     private readAccountService: services.ReadAccountService,
-    private createAccountService: services.CreateAccountService,
+    private upsertAccountService: services.UpsertAccountService,
     private updateAccountService: services.UpdateAccountService,
     private removeAccountService: services.RemoveAccountService,
   ) {
@@ -52,7 +52,7 @@ export class AccountResolver {
     @Args("options", { nullable: true }) options?: OptionsInput,
   ): Promise<AccountsOutput> {
     // minimum scope required for this control operation
-    const requiredScopes = ["service"];
+    const requiredScopes = ["user"];
 
     // authorizing session
     await this.session.authorize(context.reply.request, requiredScopes);
@@ -82,13 +82,15 @@ export class AccountResolver {
   }
 
   @Mutation(() => AccountOutput)
-  async createAccount(
-    @Args("input") input: CreateAccountInput,
+  async syncAccount(
+    @Context() context: MercuriusContext,
+    @Args("input") input: UpsertAccountInput,
   ): Promise<AccountOutput> {
+    this.session.verifyOAuth(context.reply.request);
     const serviceInput = {
       input,
     };
-    const service = await this.createAccountService.execute(serviceInput);
+    const service = await this.upsertAccountService.execute(serviceInput);
     return {
       status: this.status.createHttpStatus(service.status),
       output: service.output,

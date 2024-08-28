@@ -14,8 +14,6 @@ import {
   Raw,
 } from "typeorm";
 
-import type { CommonTypes } from "@types";
-
 type WhereCondition = {
   [key: string]: any | FindOperator<any> | WhereCondition;
 };
@@ -56,22 +54,52 @@ type MappedQueryOptions<T> = {
  * @returns An object containing helper functions for query options.
  *
  * @example
- * const helper = createQueryOptionsHelper<User>(['id', 'name', 'email']);
+ * const helper = createQueryOptionsHelper<User>(['id', 'name', 'email', 'tags']);
  *
  * // Using where option
  * const whereOptions = helper.mapQueryOptions({
+ *   where: {
+ *     name: Like('%John%'),
+ *     age: MoreThanOrEqual(18)
+ *   }
+ * });
+ *
+ * // Using where option with OR condition
+ * const whereOrOptions = helper.mapQueryOptions({
  *   where: [
- *     { field: 'name', operator: 'like', value: '%John%' },
- *     { field: 'age', operator: 'gte', value: 18 }
+ *     { name: Like('%John%') },
+ *     { name: Like('%Doe%') }
+ *   ]
+ * });
+ *
+ * // Using array_contains operator
+ * const arrayContainsOptions = helper.mapQueryOptions({
+ *   where: [
+ *     {
+ *       field: "tags",
+ *       operator: "array_contains",
+ *       value: "important"
+ *     }
+ *   ]
+ * });
+ *
+ * // Using array_contains_like operator
+ * const arrayContainsLikeOptions = helper.mapQueryOptions({
+ *   where: [
+ *     {
+ *       field: "tags",
+ *       operator: "array_contains_like",
+ *       value: "imp"
+ *     }
  *   ]
  * });
  *
  * // Using order option
  * const orderOptions = helper.mapQueryOptions({
- *   order: [
- *     { field: 'name', direction: 'ASC' },
- *     { field: 'createdAt', direction: 'DESC', nulls: 'NULLS LAST' }
- *   ]
+ *   order: {
+ *     name: "ASC",
+ *     createdAt: { direction: "DESC", nulls: "NULLS LAST" }
+ *   }
  * });
  *
  * // Using relations option
@@ -100,12 +128,30 @@ type MappedQueryOptions<T> = {
  *   cache: true
  * });
  *
- * // Combining multiple options
+ * // Combining multiple options including array operators
  * const combinedOptions = helper.mapQueryOptions({
- *   where: [{ field: 'status', operator: 'eq', value: 'active' }],
- *   order: [{ field: 'createdAt', direction: 'DESC' }],
+ *   where: [
+ *     {
+ *       field: "status",
+ *       operator: "eq",
+ *       value: "active"
+ *     },
+ *     {
+ *       field: "age",
+ *       operator: "gte",
+ *       value: 18
+ *     },
+ *     {
+ *       field: "tags",
+ *       operator: "array_contains",
+ *       value: "important"
+ *     }
+ *   ],
+ *   order: {
+ *     createdAt: "DESC"
+ *   },
  *   relations: ['profile'],
- *   select: ['id', 'name', 'email'],
+ *   select: ['id', 'name', 'email', 'tags'],
  *   skip: 0,
  *   take: 10,
  *   withDeleted: false,
@@ -171,6 +217,14 @@ const createQueryOptionsHelper = <T extends Record<string, any>>(
     switch (operator.toLowerCase()) {
       case "eq":
         return Equal(value);
+      case "array_contains":
+        return Raw((alias) => `${value} = ANY(${alias})`, { value });
+      case "array_contains_like":
+        return Raw(
+          (alias) =>
+            `EXISTS (SELECT 1 FROM unnest(${alias}) AS element WHERE element LIKE :value)`,
+          { value: `%${value}%` },
+        );
       case "like":
         return Like(value);
       case "ilike":

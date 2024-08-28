@@ -13,18 +13,16 @@ DROP ROLE IF EXISTS aether_account;
 DROP ROLE IF EXISTS aether_product;
 DROP ROLE IF EXISTS aether_content;
 
--- Create roles
 CREATE ROLE aether_account WITH LOGIN PASSWORD '### UPDATE ###';
 CREATE ROLE aether_product WITH LOGIN PASSWORD '### UPDATE ###';
 CREATE ROLE aether_content WITH LOGIN PASSWORD '### UPDATE ###';
 
--- Grant necessary permissions
 GRANT ALL ON DATABASE service_dashboard_aether TO aether_account, aether_product, aether_content;
 
--- Connect as aether_account
 \connect service_dashboard_aether aether_account
 
--- ACCOUNT MODULE
+----------------------------------------------------- ACCOUNT MODULE
+
 CREATE SCHEMA account_data_schema;
 CREATE SCHEMA account_read_schema;
 
@@ -34,8 +32,7 @@ CREATE TABLE IF NOT EXISTS account_data_schema.account (
   id_account UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL,
-  email TEXT NOT NULL,
-  password TEXT NOT NULL,
+  email TEXT[] NOT NULL,
   scope TEXT DEFAULT 'user',
   document JSONB DEFAULT '{}'::JSONB
 );
@@ -84,10 +81,9 @@ AS SELECT
   document
 FROM account_data_schema.subscription;
 
--- Connect as aether_product
 \connect service_dashboard_aether aether_product
 
--- PRODUCT MODULE
+----------------------------------------------------- PRODUCT MODULE
 CREATE SCHEMA product_data_schema;
 CREATE SCHEMA product_read_schema;
 
@@ -120,10 +116,9 @@ AS SELECT
   document
 FROM product_data_schema.work;
 
--- Connect as aether_content
 \connect service_dashboard_aether aether_content
 
--- CONTENT MODULE
+----------------------------------------------------- CONTENT MODULE
 CREATE SCHEMA content_data_schema;
 CREATE SCHEMA content_read_schema;
 
@@ -180,10 +175,10 @@ AS SELECT
   document
 FROM content_data_schema.feature;
 
--- Connect back as the original user (usually postgres)
+----------------------------------------------------- SETTING PRIVILEGES
+
 \connect service_dashboard_aether postgres
 
--- Grant necessary permissions
 GRANT USAGE ON SCHEMA account_read_schema TO aether_product, aether_content;
 GRANT USAGE ON SCHEMA product_read_schema TO aether_account, aether_content;
 GRANT USAGE ON SCHEMA content_read_schema TO aether_account, aether_product;

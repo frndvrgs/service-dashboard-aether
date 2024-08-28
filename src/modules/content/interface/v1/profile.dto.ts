@@ -2,7 +2,7 @@ import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
 import { IsOptional, IsString } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { HttpStatusModel } from "../../../../common/interface/common.model";
+import { StatusOutput } from "../../../../common/interface/common.model";
 
 import { ProfileEntity } from "../../domain/profile.entity";
 
@@ -65,8 +65,8 @@ export class UpdateProfileInput {
 
 @ObjectType()
 export class ProfileOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => Profile, { nullable: true })
   output?: Profile;
@@ -74,8 +74,8 @@ export class ProfileOutput {
 
 @ObjectType()
 export class ProfilesOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => [Profile], { nullable: true })
   output?: Profile[];

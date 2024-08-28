@@ -1,4 +1,3 @@
-import type { CommonTypes } from "@types";
 import type { ObjectLiteral, FindOneOptions, DeleteResult } from "typeorm";
 
 export interface RepositoryPort<

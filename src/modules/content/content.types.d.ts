@@ -10,8 +10,6 @@ import type {
   UpdateFeatureInput,
 } from "./interface/v1/feature.dto";
 
-import type { CommonTypes } from "@types";
-
 namespace ContentTypes {
   namespace Payload {
     namespace Service {

@@ -2,8 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { join } from "path";
 
-import type { CoreTypes } from "@types";
-
 @Injectable()
 export class SettingsService {
   private settings: CoreTypes.Settings.SettingsService;
@@ -34,8 +32,14 @@ export class SettingsService {
 
   private loadWebServerSettings(): CoreTypes.Settings.WebServer {
     return {
-      host: this.configService.get<string>("NODE_ENV") === 'production' ? '0.0.0.0' : 'localhost',
-      port: this.configService.get<string>("NODE_ENV") === 'production' ? this.configService.get<number>("PORT", 3000) : this.configService.get<number>("DEVELOPMENT_PORT", 20110),
+      host:
+        this.configService.get<string>("NODE_ENV") === "production"
+          ? "0.0.0.0"
+          : "localhost",
+      port:
+        this.configService.get<string>("NODE_ENV") === "production"
+          ? this.configService.get<number>("PORT", 3000)
+          : this.configService.get<number>("DEVELOPMENT_PORT", 20110),
       fastify: {
         // https: this.configService.get<boolean>("WEB_HTTPS", false),
         // http2: this.configService.get<boolean>("WEB_HTTP2", false),
@@ -49,6 +53,11 @@ export class SettingsService {
       cookie: {
         secret:
           this.configService.get<string>("SESSION_COOKIE_SECRET") ?? undefined,
+      },
+      cors: {
+        origin: "http://localhost:3000",
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"],
       },
       graphql: {
         service: {
@@ -199,8 +208,8 @@ export class SettingsService {
         options: {
           path: "/",
           secure: true,
-          sameSite: 'strict', // working on it, something is breaking when reading from .env
-          domain: '',
+          sameSite: "lax",
+          // domain: '',
           signed: true,
           httpOnly: true,
           maxAge: 86400,
@@ -214,8 +223,8 @@ export class SettingsService {
         options: {
           path: "/",
           secure: true,
-          sameSite: 'strict', // working on it, something is breaking when reading from .env
-          domain: '',
+          sameSite: "lax",
+          // domain: '',
           signed: true,
           httpOnly: false,
           maxAge: 86400,

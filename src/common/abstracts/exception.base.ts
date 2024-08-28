@@ -1,15 +1,14 @@
 import { errorTools } from "../helpers/error-tools";
 
+import type { DescriptionCodes, StatusCodes } from "../constants";
 import type { StatusModel } from "../interface/common.model";
-
-import type { CommonTypes } from "@types";
 
 export abstract class BaseException extends Error {
   public status: StatusModel;
   constructor(
     name: string,
-    description: CommonTypes.DescriptionCodes,
-    code: CommonTypes.StatusCodes,
+    description: keyof typeof DescriptionCodes,
+    code: StatusCodes,
     message: string,
     detail: string,
     context: string,

@@ -35,7 +35,7 @@ class WebServer {
       );
 
       await this.server.register(helmet);
-      await this.server.register(cors);
+      await this.server.register(cors, this.settings.webServer.cors);
       await this.server.register(compress);
       await this.server.register(cookie, this.settings.webServer.cookie);
       await this.server.register(rateLimit, this.settings.webServer.rateLimit);

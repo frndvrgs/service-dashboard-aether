@@ -1,12 +1,12 @@
 import { errorTools } from "../helpers/error-tools";
 import { BaseException } from "../abstracts/exception.base";
 
-import type { CommonTypes } from "@types";
+import type { DescriptionCodes, StatusCodes } from "../constants";
 
 export class AppException extends BaseException {
   constructor(
-    description: CommonTypes.DescriptionCodes,
-    code: CommonTypes.StatusCodes,
+    description: keyof typeof DescriptionCodes,
+    code: StatusCodes,
     message: string,
     detail: string,
     error?: Error | AggregateError | unknown,

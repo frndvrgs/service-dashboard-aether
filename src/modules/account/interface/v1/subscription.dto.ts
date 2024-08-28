@@ -3,7 +3,7 @@ import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
 import { IsEmail, IsOptional, IsString } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
 import { SubscriptionEntity } from "../../domain/subscription.entity";
-import { HttpStatusModel } from "../../../../common/interface/common.model";
+import { StatusOutput } from "../../../../common/interface/common.model";
 
 @ObjectType()
 @Entity({ schema: "account_data_schema", name: "subscription" })
@@ -71,8 +71,8 @@ export class UpdateSubscriptionInput {
 
 @ObjectType()
 export class SubscriptionOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => Subscription, { nullable: true })
   output?: Subscription;
@@ -80,8 +80,8 @@ export class SubscriptionOutput {
 
 @ObjectType()
 export class SubscriptionsOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => [Subscription], { nullable: true })
   output?: Subscription[];

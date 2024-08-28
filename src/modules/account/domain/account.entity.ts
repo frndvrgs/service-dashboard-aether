@@ -6,20 +6,7 @@ import {
   UpdateDateColumn,
   BeforeInsert,
 } from "typeorm";
-import argon2 from "argon2";
 import { v4 as uuidv4 } from "uuid";
-
-import type { CommonTypes } from "@types";
-
-const options = {
-  hash: {
-    type: argon2.argon2id,
-    hashLength: 64,
-    timeCost: 6,
-    memoryCost: 32 * 1024,
-    parallelism: 4,
-  },
-};
 
 @Entity({ schema: "account_data_schema", name: "account" })
 export class AccountEntity implements CommonTypes.BaseEntity {
@@ -35,11 +22,8 @@ export class AccountEntity implements CommonTypes.BaseEntity {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt!: Date;
 
-  @Column()
-  email!: string;
-
-  @Column()
-  password!: string;
+  @Column("text", { array: true })
+  email!: string[];
 
   @Column({ default: "user" })
   scope!: string;
@@ -51,13 +35,6 @@ export class AccountEntity implements CommonTypes.BaseEntity {
   generateIdAccount() {
     if (!this.idAccount) {
       this.idAccount = uuidv4();
-    }
-  }
-
-  @BeforeInsert()
-  async generatePassword() {
-    if (this.password) {
-      this.password = await argon2.hash(this.password, options.hash);
     }
   }
 

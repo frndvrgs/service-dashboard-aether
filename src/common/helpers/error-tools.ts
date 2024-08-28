@@ -1,6 +1,5 @@
 import { logger } from "./logger";
-
-import type { CommonTypes } from "@types";
+import type { DescriptionCodes, StatusCodes } from "../constants";
 
 interface FormattedError {
   error: {
@@ -18,8 +17,8 @@ interface FormattedErrorList {
 
 interface LogErrorInput {
   name?: string;
-  description?: CommonTypes.DescriptionCodes;
-  code?: CommonTypes.StatusCodes;
+  description?: keyof typeof DescriptionCodes;
+  code?: StatusCodes;
   message?: string;
   detail?: string;
   context?: string;

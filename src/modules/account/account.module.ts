@@ -6,6 +6,7 @@ import { SubscriptionRepository } from "./repositories/subscription.repository";
 
 import { AccountResolver } from "./resolvers/account.resolver";
 import { SessionController } from "./controllers/session.controller";
+import { AccountController } from "./controllers/account.controller";
 import { SubscriptionResolver } from "./resolvers/subscription.resolver";
 
 import * as account from "./services/account";
@@ -14,7 +15,7 @@ import * as subscription from "./services/subscription";
 
 @Module({
   imports: [CommonModule],
-  controllers: [SessionController],
+  controllers: [SessionController, AccountController],
   providers: [
     AccountRepository,
     SubscriptionRepository,
@@ -23,7 +24,7 @@ import * as subscription from "./services/subscription";
     // account
     account.ListAccountsService,
     account.ReadAccountService,
-    account.CreateAccountService,
+    account.UpsertAccountService,
     account.UpdateAccountService,
     account.RemoveAccountService,
     // session

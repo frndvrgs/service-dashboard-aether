@@ -2,7 +2,7 @@ import type { StatusModel } from "../../common/interface/common.model";
 import type { AccountEntity } from "./domain/account.entity";
 import type { SubscriptionEntity } from "./domain/subscription.entity";
 import type {
-  CreateAccountInput,
+  UpsertAccountInput,
   UpdateAccountInput,
   CreateSessionInput,
 } from "./interface/v1/account.dto";
@@ -10,8 +10,6 @@ import type {
   CreateSubscriptionInput,
   UpdateSubscriptionInput,
 } from "./interface/v1/subscription.dto";
-
-import type { CommonTypes } from "@types";
 
 namespace AccountTypes {
   namespace Payload {
@@ -40,9 +38,9 @@ namespace AccountTypes {
         }
       }
 
-      namespace CreateAccount {
+      namespace UpsertAccount {
         interface Input {
-          input: CreateAccountInput;
+          input: UpsertAccountInput;
         }
 
         interface Output extends BaseOutput {

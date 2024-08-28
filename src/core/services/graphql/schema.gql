@@ -5,7 +5,7 @@
 type Account {
   created_at: DateTime
   document: JSONObject
-  email: String
+  email: [String!]
   id_account: ID
   scope: String
   updated_at: DateTime
@@ -13,17 +13,12 @@ type Account {
 
 type AccountOutput {
   output: Account
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 type AccountsOutput {
   output: [Account!]
-  status: HttpStatusModel!
-}
-
-input CreateAccountInput {
-  email: String!
-  password: String!
+  status: StatusOutput!
 }
 
 input CreateFeatureInput {
@@ -52,6 +47,59 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+enum DescriptionCodes {
+  ACCOUNT_CREATED
+  ACCOUNT_REMOVED
+  ACCOUNT_UPDATED
+  COLLECTION_LISTED
+  DATABASE_CLIENT_ERROR
+  DATABASE_ERROR
+  DUPLICATED
+  EXPIRED_TOKEN
+  FEATURE_CREATED
+  FEATURE_REMOVED
+  FEATURE_UPDATED
+  INACTIVE_TOKEN
+  INTERNAL_SERVER_ERROR
+  INVALID_AUTH_SCOPE
+  INVALID_AUTH_TOKEN
+  INVALID_INPUT
+  INVALID_SESSION
+  INVALID_SIGNATURE
+  INVALID_SUBSCRIPTION_STATUS
+  INVALID_SUBSCRIPTION_TYPE
+  INVALID_VALUE
+  INVALID_VALUE_FORMAT
+  INVALID_VALUE_LENGTH
+  MISSING_PAYLOAD
+  NON_NULLABLE_VALUE
+  NOTHING_FOUND
+  NOT_ALLOWED
+  NOT_AUTHENTICATED
+  NOT_AUTHORIZED
+  NOT_FOUND
+  NOT_UNIQUE_VALUE
+  PROFILE_CREATED
+  PROFILE_REMOVED
+  PROFILE_UPDATED
+  RESOURCE_READ
+  SESSION_CREATED
+  SESSION_REMOVED
+  SESSION_VERIFIED
+  SET_AUTHENTICATION_ERROR
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_REMOVED
+  SUBSCRIPTION_UPDATED
+  UNAVAILABLE_FEATURES
+  UNKNOWN_ERROR
+  VALIDATION_ERROR
+  WEB_SERVER_ERROR
+  WORKS_LISTED
+  WORK_CREATED
+  WORK_REMOVED
+  WORK_UPDATED
+}
+
 type Feature {
   created_at: DateTime
   document: JSONObject
@@ -63,23 +111,12 @@ type Feature {
 
 type FeatureOutput {
   output: Feature
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 type FeaturesOutput {
   output: [Feature!]
-  status: HttpStatusModel!
-}
-
-type HttpStatusModel {
-  code: Int
-  context: String
-  description: String
-  detail: String
-  message: String
-  name: String
-  scope: String
-  type: String
+  status: StatusOutput!
 }
 
 """
@@ -88,7 +125,6 @@ The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](
 scalar JSONObject
 
 type Mutation {
-  createAccount(input: CreateAccountInput!): AccountOutput!
   createFeature(input: CreateFeatureInput!): FeatureOutput!
   createProfile(account: ID!, input: CreateProfileInput!): ProfileOutput!
   createSubscription(account: ID!, input: CreateSubscriptionInput!): SubscriptionOutput!
@@ -98,6 +134,7 @@ type Mutation {
   removeProfile(profile: ID!): ProfileOutput!
   removeSubscription(subscription: ID!): SubscriptionOutput!
   removeWork(work: ID!): WorkOutput!
+  syncAccount(input: UpsertAccountInput!): AccountOutput!
   updateAccount(account: ID!, input: UpdateAccountInput!): AccountOutput!
   updateFeature(feature: ID!, input: UpdateFeatureInput!): FeatureOutput!
   updateProfile(input: UpdateProfileInput!, profile: ID!): ProfileOutput!
@@ -134,12 +171,12 @@ type Profile {
 
 type ProfileOutput {
   output: Profile
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 type ProfilesOutput {
   output: [Profile!]
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 type Query {
@@ -155,6 +192,17 @@ type Query {
   readWork(options: OptionsInput!): WorkOutput
 }
 
+type StatusOutput {
+  code: Int
+  context: String
+  description: DescriptionCodes
+  detail: String
+  message: String
+  name: String
+  scope: String
+  type: String
+}
+
 type Subscription {
   created_at: DateTime!
   document: JSONObject!
@@ -167,17 +215,17 @@ type Subscription {
 
 type SubscriptionOutput {
   output: Subscription
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 type SubscriptionsOutput {
   output: [Subscription!]
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 input UpdateAccountInput {
+  details: JSONObject!
   email: String!
-  password: String!
 }
 
 input UpdateFeatureInput {
@@ -201,11 +249,32 @@ input UpdateWorkInput {
   name: String!
 }
 
+input UpsertAccountInput {
+  details: JSONObject!
+  email: [String!]!
+}
+
 input WhereInput {
   conditions: [WhereInput!]
   field: String
-  operator: String
+  operator: WhereOperator
   value: String
+}
+
+"""Operators for where conditions"""
+enum WhereOperator {
+  ARRAY_CONTAINS
+  ARRAY_CONTAINS_LIKE
+  EQ
+  GT
+  GTE
+  ILIKE
+  IN
+  IS_NULL
+  LIKE
+  LT
+  LTE
+  NOT
 }
 
 type Work {
@@ -221,10 +290,10 @@ type Work {
 
 type WorkOutput {
   output: Work
-  status: HttpStatusModel!
+  status: StatusOutput!
 }
 
 type WorksOutput {
   output: [Work!]
-  status: HttpStatusModel!
+  status: StatusOutput!
 }

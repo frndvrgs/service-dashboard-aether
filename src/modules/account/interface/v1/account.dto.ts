@@ -1,8 +1,8 @@
 import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsArray, IsString } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { HttpStatusModel } from "../../../../common/interface/common.model";
+import { StatusOutput } from "../../../../common/interface/common.model";
 
 import { AccountEntity } from "../../domain/account.entity";
 
@@ -21,9 +21,9 @@ export class Account implements Partial<AccountEntity> {
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt!: Date;
 
-  @Field({ nullable: true })
-  @Column()
-  email!: string;
+  @Field(() => [String], { nullable: true })
+  @Column("text", { array: true })
+  email!: string[];
 
   @Field({ nullable: true })
   @Column({ default: "user" })
@@ -35,33 +35,33 @@ export class Account implements Partial<AccountEntity> {
 }
 
 @InputType()
-export class CreateAccountInput {
-  @Field()
-  @IsEmail()
+export class UpsertAccountInput {
+  @Field(() => [String])
+  @IsString()
   email!: string;
 
-  @Field()
-  @IsString()
-  password!: string;
+  @Field(() => GraphQLJSONObject)
+  @Column({ type: "jsonb", default: "{}" })
+  details!: Record<string, any>;
 }
 
 @InputType()
 export class UpdateAccountInput {
   @Field()
   @IsOptional()
-  @IsEmail()
+  @IsArray()
+  @IsEmail({}, { each: true })
   email?: string;
 
-  @Field()
-  @IsOptional()
-  @IsString()
-  password?: string;
+  @Field(() => GraphQLJSONObject)
+  @Column({ type: "jsonb", default: "{}" })
+  details?: Record<string, any>;
 }
 
 @ObjectType()
 export class AccountOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => Account, { nullable: true })
   output?: Account;
@@ -69,8 +69,8 @@ export class AccountOutput {
 
 @ObjectType()
 export class AccountsOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => [Account], { nullable: true })
   output?: Account[];

@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
 import { v4 as uuidv4 } from "uuid";
-
 import { Injectable } from "@nestjs/common";
 import { SettingsService } from "../../core/services/settings/settings.service";
 import { InterfaceException } from "../exceptions/interface.exception";
@@ -10,8 +9,6 @@ import type { SessionHandlerPort } from "../ports/session.handler.port";
 import type { StatusModel } from "../interface/common.model";
 import type { JWTPayload } from "jose";
 import type { FastifyRequest, FastifyReply } from "fastify";
-
-import type { CoreTypes } from "@types";
 
 type ServiceScope = "user" | "service";
 
@@ -72,7 +69,7 @@ export class SessionHandler
   }
 
   private async verifyToken(
-    token: string,
+    token: string | Uint8Array,
     secret: string,
   ): Promise<SessionIdentity | null> {
     try {
@@ -143,8 +140,6 @@ export class SessionHandler
 
       const token = await signToken(input);
 
-      console.log('## session.auth.options', session.auth.options)
-
       reply
         .setCookie(session.auth.name, token, session.auth.options)
         .setCookie(session.user.name, input.idAccount, session.user.options);
@@ -189,7 +184,26 @@ export class SessionHandler
   }
 
   /**
-   * Verifies the session cookies and returns if the user is authenticated.
+   * Verifies the OAuth sync cookie.
+   *
+   * @param request The Fastify request object.
+   * @returns A promise that resolves to the authenticated user's identity.
+   *
+   */
+
+  async verifyOAuth(request: FastifyRequest): Promise<SessionIdentity | null> {
+    const { session } = this.settings;
+    const oauthCookie = request.cookies["oauth"];
+
+    if (!oauthCookie) return null;
+
+    const identity = await this.verifyToken(oauthCookie, session.tokenSecret);
+
+    return identity;
+  }
+
+  /**
+   * Verifies the CMS session cookies
    *
    * @param request The Fastify request object.
    * @returns A promise that resolves to the authenticated user's identity.

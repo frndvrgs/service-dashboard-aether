@@ -1,14 +1,21 @@
-import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { ObjectType, Field, Int, registerEnumType } from "@nestjs/graphql";
+import { DescriptionCodes, StatusCodes } from "../constants";
 
-import type { CommonTypes } from "@types";
+registerEnumType(DescriptionCodes, {
+  name: "DescriptionCodes",
+});
+
+registerEnumType(StatusCodes, {
+  name: "StatusCodes",
+});
 
 @ObjectType()
 export class StatusModel {
-  @Field(() => String, { nullable: true })
-  description?: CommonTypes.DescriptionCodes;
+  @Field(() => DescriptionCodes, { nullable: true })
+  description?: keyof typeof DescriptionCodes;
 
-  @Field(() => String, { nullable: true })
-  code!: CommonTypes.StatusCodes;
+  @Field(() => StatusCodes, { nullable: true })
+  code!: StatusCodes;
 
   @Field(() => String, { nullable: true })
   message?: string;
@@ -24,15 +31,15 @@ export class StatusModel {
 }
 
 @ObjectType()
-export class HttpStatusModel {
+export class StatusOutput {
   @Field(() => String, { nullable: true })
   type?: string;
 
   @Field(() => String, { nullable: true })
   name?: string;
 
-  @Field(() => String, { nullable: true })
-  description?: string;
+  @Field(() => DescriptionCodes, { nullable: true })
+  description?: DescriptionCodes;
 
   @Field(() => Int, { nullable: true })
   code?: number;

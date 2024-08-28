@@ -8,7 +8,6 @@ import {
 import { queryTools } from "../interface/v1/helpers/query-tools";
 
 import type { RepositoryPort } from "../ports/repository.port";
-import type { CommonTypes } from "@types";
 
 export interface BaseEntity {
   id: number;
@@ -38,6 +37,10 @@ export abstract class BaseRepository<T extends BaseEntity & ObjectLiteral>
   async exists(options: FindOneOptions<T>): Promise<boolean> {
     const count = await this.repository.count(options);
     return count > 0;
+  }
+
+  async findOne(options: FindOneOptions<T>): Promise<T | null> {
+    return this.repository.findOne(options);
   }
 
   async save(entity: T): Promise<T> {

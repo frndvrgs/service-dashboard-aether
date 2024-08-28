@@ -8,8 +8,6 @@ import {
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 
-import type { CommonTypes } from "@types";
-
 @Entity({ schema: "content_data_schema", name: "profile" })
 export class ProfileEntity implements CommonTypes.BaseEntity {
   @PrimaryGeneratedColumn("identity", { type: "int" })

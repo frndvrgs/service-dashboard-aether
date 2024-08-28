@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { SettingsService } from "../../core/services/settings/settings.service";
+import { DescriptionCodes, StatusCodes } from "../constants";
 
-import type { StatusModel, HttpStatusModel } from "../interface/common.model";
+import type { StatusModel, StatusOutput } from "../interface/common.model";
 import type { StatusHandlerPort } from "../ports/status.handler.port";
-import type { CommonTypes } from "@types";
 
 @Injectable()
 export class StatusHandler
-  implements StatusHandlerPort<StatusModel, HttpStatusModel>
+  implements StatusHandlerPort<StatusModel, StatusOutput>
 {
   constructor(private settingsService: SettingsService) {}
   /**
@@ -17,7 +17,7 @@ export class StatusHandler
    * @returns The generated HTTP status DTo object which returns as API response within service output.
    *
    */
-  createHttpStatus = (status: StatusModel): HttpStatusModel => {
+  createHttpStatus = (status: StatusModel): StatusOutput => {
     const statusList: CommonTypes.Handler.Status.CodeList = {
       "1xx": {
         type: "INFORMATION",
@@ -98,21 +98,19 @@ export class StatusHandler
       return "unknown";
     };
 
-    console.log("## statusHandler", status);
-
     const settings = this.settingsService.app;
     const isDevelopment = settings.environment === "DEVELOPMENT";
 
     const code = status.code;
     const category = getStatusCodeCategory(code);
     const type = statusList[category]?.type;
-    const name = statusList[category]?.name[code as CommonTypes.StatusCodes];
+    const name = statusList[category]?.name[code as StatusCodes];
 
-    const output: HttpStatusModel = {
+    const output: StatusOutput = {
       type: type ?? "SERVER_ERROR",
       name: name ?? "INTERNAL_SERVER_ERROR",
-      description: status.description ?? "UNKNOWN_ERROR",
-      code: code ?? 500,
+      description: (status.description ?? "UNKNOWN_ERROR") as DescriptionCodes,
+      code: (code ?? 500) as StatusCodes,
       context: isDevelopment ? status.context : null,
       scope: isDevelopment ? status.scope : null,
       message: isDevelopment ? status.message : null,

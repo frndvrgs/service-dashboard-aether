@@ -5,8 +5,6 @@ import type {
   CreateSessionInput,
 } from "./interface/v1/work.dto";
 
-import type { CommonTypes } from "@types";
-
 namespace ProductTypes {
   namespace Payload {
     namespace Service {

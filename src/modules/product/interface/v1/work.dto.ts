@@ -2,7 +2,7 @@ import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
 import { IsOptional, IsString, IsNumber } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { HttpStatusModel } from "../../../../common/interface/common.model";
+import { StatusOutput } from "../../../../common/interface/common.model";
 
 import { WorkEntity } from "../../domain/work.entity";
 
@@ -68,8 +68,8 @@ export class UpdateWorkInput {
 
 @ObjectType()
 export class WorkOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => Work, { nullable: true })
   output?: Work;
@@ -77,8 +77,8 @@ export class WorkOutput {
 
 @ObjectType()
 export class WorksOutput {
-  @Field(() => HttpStatusModel)
-  status!: HttpStatusModel;
+  @Field(() => StatusOutput)
+  status!: StatusOutput;
 
   @Field(() => [Work], { nullable: true })
   output?: Work[];

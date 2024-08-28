@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import argon2 from "argon2";
 import { AppException } from "../../../../common/exceptions/app.exception";
 import { AccountRepository } from "../../repositories/account.repository";
 
@@ -24,18 +23,6 @@ export class CreateSessionService {
         "invalid credentials.",
         "verification failed: email or password",
       );
-    }
-
-    if (input.password) {
-      const verified = await argon2.verify(resource.password, input.password);
-      if (!verified) {
-        throw new AppException(
-          "INVALID_SESSION",
-          401,
-          "invalid credentials.",
-          "verification failed: email or password",
-        );
-      }
     }
 
     return {
