@@ -32,7 +32,8 @@ export class ReadGitHubDataService {
           });
 
           const formattedPullRequests = pullRequests.map((pr) => ({
-            id: pr.id,
+            id_pull_request: pr.id,
+            id_repository: repo.id,
             number: pr.number,
             title: pr.title,
             url: pr.html_url,
@@ -46,7 +47,7 @@ export class ReadGitHubDataService {
           }));
 
           return {
-            id: repo.id,
+            id_repository: repo.id,
             name: repo.name,
             full_name: repo.full_name,
             description: repo.description,
