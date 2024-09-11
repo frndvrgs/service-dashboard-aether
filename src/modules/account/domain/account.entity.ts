@@ -13,14 +13,14 @@ export class AccountEntity implements CommonTypes.BaseEntity {
   @PrimaryGeneratedColumn("identity", { type: "int" })
   id!: number;
 
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Column("uuid")
+  id_account!: string;
 
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @UpdateDateColumn()
+  updated_at!: Date;
 
   @Column("text", { array: true })
   email!: string[];
@@ -28,21 +28,31 @@ export class AccountEntity implements CommonTypes.BaseEntity {
   @Column({ default: "user" })
   scope!: string;
 
+  @Column()
+  github_token!: string;
+
   @Column({ type: "jsonb", default: "{}" })
   document!: Record<string, any>;
 
+  @Column({
+    type: "boolean",
+    generatedType: "STORED",
+    asExpression: "github_token IS NOT NULL",
+  })
+  has_github_token!: boolean;
+
   @BeforeInsert()
   generateIdAccount() {
-    if (!this.idAccount) {
-      this.idAccount = uuidv4();
+    if (!this.id_account) {
+      this.id_account = uuidv4();
     }
   }
 
   @BeforeInsert()
   setDates() {
-    if (!this.createdAt) {
-      this.createdAt = new Date();
+    if (!this.created_at) {
+      this.created_at = new Date();
     }
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

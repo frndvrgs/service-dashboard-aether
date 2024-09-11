@@ -13,7 +13,7 @@ export class RemoveFeatureService {
   ): Promise<ContentTypes.Payload.Service.RemoveFeature.Output> {
     const { feature } = service;
 
-    const result = await this.repository.remove(feature);
+    const result = await this.repository.remove("id_feature", feature);
     if (result.affected === 0) {
       throw new AppException(
         "INTERNAL_SERVER_ERROR",

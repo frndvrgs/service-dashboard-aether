@@ -98,7 +98,7 @@ type MappedQueryOptions<T> = {
  * const orderOptions = helper.mapQueryOptions({
  *   order: {
  *     name: "ASC",
- *     createdAt: { direction: "DESC", nulls: "NULLS LAST" }
+ *     created_at: { direction: "DESC", nulls: "NULLS LAST" }
  *   }
  * });
  *
@@ -148,7 +148,7 @@ type MappedQueryOptions<T> = {
  *     }
  *   ],
  *   order: {
- *     createdAt: "DESC"
+ *     created_at: "DESC"
  *   },
  *   relations: ['profile'],
  *   select: ['id', 'name', 'email', 'tags'],

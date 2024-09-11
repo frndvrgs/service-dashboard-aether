@@ -77,6 +77,9 @@ declare global {
       interface App {
         name: string;
         environment: string;
+        encryption: {
+          masterKey?: string;
+        };
       }
       interface WebServer {
         host: string;

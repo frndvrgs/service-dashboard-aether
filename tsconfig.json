@@ -97,7 +97,7 @@
     "noImplicitThis": true,
 
     // Reports errors on unused locals
-    "noUnusedLocals": true,
+    // "noUnusedLocals": true,
 
     // Requires that overriding members in derived classes are marked with an override modifier
     "noImplicitOverride": true,

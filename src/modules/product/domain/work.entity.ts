@@ -13,25 +13,40 @@ export class WorkEntity implements CommonTypes.BaseEntity {
   @PrimaryGeneratedColumn("identity", { type: "int" })
   id!: number;
 
-  @Column("uuid", { name: "id_work" })
-  idWork!: string;
+  @Column("uuid")
+  id_work!: string;
 
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Column("uuid")
+  id_account!: string;
 
-  @Column("uuid", { name: "id_feature" })
-  idFeature!: string;
+  @Column("uuid")
+  id_feature!: string;
 
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @Column()
+  id_repository!: string;
 
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @CreateDateColumn()
+  created_at!: Date;
+
+  @UpdateDateColumn()
+  updated_at!: Date;
 
   @Column()
   name!: string;
 
-  @Column("numeric", { precision: 5, scale: 2 })
+  @Column({ nullable: true })
+  repository_name?: string;
+
+  @Column()
+  process_type!: string;
+
+  @Column({ default: "idle" })
+  process_status!: string;
+
+  @Column({ type: "boolean", default: false })
+  has_code_dump!: boolean;
+
+  @Column("numeric", { precision: 5, scale: 2, default: 0 })
   level!: number;
 
   @Column({ type: "jsonb", default: "{}" })
@@ -39,21 +54,21 @@ export class WorkEntity implements CommonTypes.BaseEntity {
 
   // work in progress, having issues using multiple datasources
   // @ManyToOne(() => AccountEntity)
-  // @JoinColumn({ name: "id_account" })
+  // @JoinColumn()
   // account!: AccountEntity;
 
   @BeforeInsert()
   generateIdAccount() {
-    if (!this.idWork) {
-      this.idWork = uuidv4();
+    if (!this.id_work) {
+      this.id_work = uuidv4();
     }
   }
 
   @BeforeInsert()
   setDates() {
-    if (!this.createdAt) {
-      this.createdAt = new Date();
+    if (!this.created_at) {
+      this.created_at = new Date();
     }
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

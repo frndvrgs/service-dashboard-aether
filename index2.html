@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test - Work Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Função para gerar um ID de trabalho aleatório (apenas para fins de teste)
+        function generateTestWorkId() {
+            return 'work_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        const idWork = "b9244914-638a-4c4a-94e7-feced29c0682"
+        console.log('Using test work ID:', idWork);
+
+        const socket = io('http://127.0.0.1:20110', {
+            transports: ['websocket'],
+            query: { id_work: idWork },
+            path: '/audit'
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket for work:', idWork);
+            updateStatus('Connected');
+        });
+
+        socket.on('workUpdate', (data) => {
+            console.log('Work update:', data);
+            updateStatus('Update received');
+            updateData(JSON.stringify(data, null, 2));
+        });
+
+        socket.on('workError', (data) => {
+            console.error('Work error:', data);
+            updateStatus('Error occurred');
+            updateData(JSON.stringify(data, null, 2));
+        });
+
+        socket.on('workCompleted', () => {
+            console.log('Work completed');
+            updateStatus('Completed');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from WebSocket');
+            updateStatus('Disconnected');
+        });
+
+        function updateStatus(status) {
+            document.getElementById('status').textContent = status;
+        }
+
+        function updateData(data) {
+            document.getElementById('data').textContent = data;
+        }
+
+        function simulateWorkUpdate() {
+            const testData = {
+                process_status: 'in_progress',
+                progress: Math.floor(Math.random() * 100)
+            };
+            socket.emit('workUpdate', { status: 'in_progress', data: testData });
+        }
+
+        function simulateWorkError() {
+            const testError = {
+                message: 'Simulated error',
+                code: 'TEST_ERROR'
+            };
+            socket.emit('workError', { error: testError });
+        }
+
+        function simulateWorkCompletion() {
+            socket.emit('workCompleted');
+        }
+    </script>
+</head>
+<body>
+    <h1>WebSocket Test - Work Monitoring</h1>
+    <p>Work ID: <span id="workId"></span></p>
+    <p>Status: <span id="status">Not connected</span></p>
+    <h2>Data:</h2>
+    <pre id="data"></pre>
+    <button onclick="simulateWorkUpdate()">Simulate Work Update</button>
+    <button onclick="simulateWorkError()">Simulate Work Error</button>
+    <button onclick="simulateWorkCompletion()">Simulate Work Completion</button>
+    <script>
+        document.getElementById('workId').textContent = idWork;
+    </script>
+</body>
+</html>

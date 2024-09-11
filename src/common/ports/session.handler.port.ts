@@ -1,4 +1,4 @@
-export interface SessionHandlerPort<
+export interface SessionServicePort<
   Request,
   Reply,
   SessionInput,

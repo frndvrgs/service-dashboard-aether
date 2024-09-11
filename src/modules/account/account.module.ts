@@ -9,12 +9,14 @@ import { SessionController } from "./controllers/session.controller";
 import { AccountController } from "./controllers/account.controller";
 import { SubscriptionResolver } from "./resolvers/subscription.resolver";
 
+import { ContentModule } from "../content/content.module";
+
 import * as account from "./services/account";
 import * as session from "./services/session";
 import * as subscription from "./services/subscription";
 
 @Module({
-  imports: [CommonModule],
+  imports: [CommonModule, ContentModule],
   controllers: [SessionController, AccountController],
   providers: [
     AccountRepository,
@@ -27,6 +29,8 @@ import * as subscription from "./services/subscription";
     account.UpsertAccountService,
     account.UpdateAccountService,
     account.RemoveAccountService,
+    account.ReadGitHubDataService,
+    account.FetchAccountGitHubService,
     // session
     session.CreateSessionService,
     // subscription
@@ -35,6 +39,7 @@ import * as subscription from "./services/subscription";
     subscription.CreateSubscriptionService,
     subscription.UpdateSubscriptionService,
     subscription.RemoveSubscriptionService,
+    // external
   ],
   exports: [AccountRepository, SubscriptionRepository],
 })

@@ -13,7 +13,7 @@ export class RemoveAccountService {
   ): Promise<AccountTypes.Payload.Service.RemoveAccount.Output> {
     const { account } = service;
 
-    const result = await this.repository.remove(account);
+    const result = await this.repository.remove("id_account", account);
     if (result.affected === 0) {
       throw new AppException(
         "INTERNAL_SERVER_ERROR",

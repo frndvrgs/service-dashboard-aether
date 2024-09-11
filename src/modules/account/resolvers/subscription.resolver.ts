@@ -1,28 +1,35 @@
-import { Resolver, Query, Mutation, Args, ID } from "@nestjs/graphql";
-import { UseFilters, ParseUUIDPipe } from "@nestjs/common";
+import { Resolver, Query, Mutation, Args, ID, Context } from "@nestjs/graphql";
+import { UseFilters } from "@nestjs/common";
 import { queryTools } from "../../../common/interface/v1/helpers/query-tools";
 import { OptionsInput } from "../../../common/interface/v1/common.dto";
-import { StatusHandler } from "../../../common/handlers/status.handler";
+import { SessionService } from "../../../common/services/session.service";
+import { StatusService } from "../../../common/services/status.service";
+import { InterfaceExceptionFilter } from "../../../common/filters/interface.exception.filter";
 import { AppExceptionFilter } from "../../../common/filters/app.exception.filter";
 import {
   Subscription,
   CreateSubscriptionInput,
   UpdateSubscriptionInput,
-  SubscriptionOutput,
-  SubscriptionsOutput,
+  SubscriptionResponse,
+  SubscriptionsResponse,
 } from "../interface/v1/subscription.dto";
 
 import * as services from "../services/subscription";
 
+import type { AccountTypes } from "../account.types";
+import type { MercuriusContext } from "mercurius";
+
 @Resolver(() => Subscription)
 @UseFilters(AppExceptionFilter)
+@UseFilters(InterfaceExceptionFilter)
 export class SubscriptionResolver {
   private queryOptionsHelper: ReturnType<
     typeof queryTools.createQueryOptionsHelper<Subscription>
   >;
 
   constructor(
-    private status: StatusHandler,
+    private sessionService: SessionService,
+    private status: StatusService,
     private listSubscriptionsService: services.ListSubscriptionsService,
     private readSubscriptionService: services.ReadSubscriptionService,
     private createSubscriptionService: services.CreateSubscriptionService,
@@ -30,20 +37,27 @@ export class SubscriptionResolver {
     private removeSubscriptionService: services.RemoveSubscriptionService,
   ) {
     const allowedSelectFields: (keyof Subscription)[] = [
-      "idSubscription",
+      "id_subscription",
       "type",
       "status",
-      "createdAt",
-      "updatedAt",
+      "created_at",
+      "updated_at",
     ];
     this.queryOptionsHelper =
       queryTools.createQueryOptionsHelper<Subscription>(allowedSelectFields);
   }
 
-  @Query(() => SubscriptionsOutput)
+  @Query(() => SubscriptionsResponse)
   async listSubscriptions(
-    @Args("options", { nullable: true }) options?: OptionsInput,
-  ): Promise<SubscriptionsOutput> {
+    @Context() context: MercuriusContext,
+    @Args("options") options: OptionsInput,
+  ): Promise<SubscriptionsResponse> {
+    // minimum scope required for this control operation
+    const requiredScopes = ["service"];
+
+    // authorizing session
+    await this.sessionService.authorize(context.reply.request, requiredScopes);
+
     const serviceInput = {
       options: this.queryOptionsHelper.mapQueryOptions(options),
     };
@@ -54,13 +68,35 @@ export class SubscriptionResolver {
     };
   }
 
-  @Query(() => SubscriptionOutput, { nullable: true })
+  @Query(() => SubscriptionResponse)
   async readSubscription(
-    @Args("options", { nullable: false }) options: OptionsInput,
-  ): Promise<SubscriptionOutput> {
-    const serviceInput = {
-      options: this.queryOptionsHelper.mapQueryOptions(options),
-    };
+    @Context() context: MercuriusContext,
+    @Args("options", { nullable: true }) options?: OptionsInput,
+  ): Promise<SubscriptionResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["user"];
+
+    // authorizing and retrieving identity values from session
+    const identity = await this.sessionService.authorize(
+      context.reply.request,
+      requiredScopes,
+    );
+
+    let serviceInput: AccountTypes.Payload.Service.ReadSubscription.Input;
+
+    if (identity.scope.service && options) {
+      serviceInput = {
+        options: this.queryOptionsHelper.mapQueryOptions(options),
+      };
+    } else {
+      serviceInput = {
+        options: this.queryOptionsHelper.mapQueryOptions({
+          where: [{ field: "id_account", operator: "EQ", value: identity.sub }],
+        }),
+      };
+    }
+
     const service = await this.readSubscriptionService.execute(serviceInput);
     return {
       status: this.status.createHttpStatus(service.status),
@@ -68,15 +104,30 @@ export class SubscriptionResolver {
     };
   }
 
-  @Mutation(() => SubscriptionOutput)
+  @Mutation(() => SubscriptionResponse)
   async createSubscription(
-    @Args("account", { type: () => ID }, ParseUUIDPipe) account: string,
+    @Context() context: MercuriusContext,
     @Args("input") input: CreateSubscriptionInput,
-  ): Promise<SubscriptionOutput> {
-    const serviceInput = {
-      account,
-      input,
-    };
+    @Args("account", { type: () => ID, nullable: true }) account?: string,
+  ): Promise<SubscriptionResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["user"];
+
+    // authorizing and retrieving identity values from session
+    const identity = await this.sessionService.authorize(
+      context.reply.request,
+      requiredScopes,
+    );
+
+    const serviceInput: AccountTypes.Payload.Service.CreateSubscription.Input =
+      {
+        account: identity.scope.service
+          ? account ?? identity.sub
+          : identity.sub,
+        input,
+      };
+
     const service = await this.createSubscriptionService.execute(serviceInput);
     return {
       status: this.status.createHttpStatus(service.status),
@@ -84,16 +135,30 @@ export class SubscriptionResolver {
     };
   }
 
-  @Mutation(() => SubscriptionOutput)
+  @Mutation(() => SubscriptionResponse)
   async updateSubscription(
-    @Args("subscription", { type: () => ID }, ParseUUIDPipe)
-    subscription: string,
+    @Context() context: MercuriusContext,
     @Args("input") input: UpdateSubscriptionInput,
-  ): Promise<SubscriptionOutput> {
-    const serviceInput = {
-      subscription,
-      input,
-    };
+    @Args("account", { type: () => ID, nullable: true }) account?: string,
+  ): Promise<SubscriptionResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["user"];
+
+    // authorizing and retrieving identity values from session
+    const identity = await this.sessionService.authorize(
+      context.reply.request,
+      requiredScopes,
+    );
+
+    const serviceInput: AccountTypes.Payload.Service.UpdateSubscription.Input =
+      {
+        account: identity.scope.service
+          ? account ?? identity.sub
+          : identity.sub,
+        input,
+      };
+
     const service = await this.updateSubscriptionService.execute(serviceInput);
     return {
       status: this.status.createHttpStatus(service.status),
@@ -101,14 +166,28 @@ export class SubscriptionResolver {
     };
   }
 
-  @Mutation(() => SubscriptionOutput)
+  @Mutation(() => SubscriptionResponse)
   async removeSubscription(
-    @Args("subscription", { type: () => ID }, ParseUUIDPipe)
-    subscription: string,
-  ): Promise<SubscriptionOutput> {
-    const serviceInput = {
-      subscription,
-    };
+    @Context() context: MercuriusContext,
+    @Args("account", { type: () => ID, nullable: true }) account?: string,
+  ): Promise<SubscriptionResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["user"];
+
+    // authorizing and retrieving identity values from session
+    const identity = await this.sessionService.authorize(
+      context.reply.request,
+      requiredScopes,
+    );
+
+    const serviceInput: AccountTypes.Payload.Service.RemoveSubscription.Input =
+      {
+        account: identity.scope.service
+          ? account ?? identity.sub
+          : identity.sub,
+      };
+
     const service = await this.removeSubscriptionService.execute(serviceInput);
     return {
       status: this.status.createHttpStatus(service.status),

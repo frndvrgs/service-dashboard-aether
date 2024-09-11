@@ -31,7 +31,7 @@ export class StatusModel {
 }
 
 @ObjectType()
-export class StatusOutput {
+export class Status {
   @Field(() => String, { nullable: true })
   type?: string;
 
@@ -55,4 +55,7 @@ export class StatusOutput {
 
   @Field(() => String, { nullable: true })
   detail?: string | null;
+
+  @Field({ defaultValue: false })
+  isError?: boolean;
 }

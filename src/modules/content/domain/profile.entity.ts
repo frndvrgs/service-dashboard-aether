@@ -13,44 +13,44 @@ export class ProfileEntity implements CommonTypes.BaseEntity {
   @PrimaryGeneratedColumn("identity", { type: "int" })
   id!: number;
 
-  @Column("uuid", { name: "id_profile" })
-  idProfile!: string;
+  @Column("uuid")
+  id_profile!: string;
 
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Column("uuid")
+  id_account!: string;
 
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @UpdateDateColumn()
+  updated_at!: Date;
 
   @Column()
   username!: string;
 
-  @Column()
-  name!: string;
+  @Column({ nullable: true })
+  name?: string;
 
   @Column({ type: "jsonb", default: "{}" })
   document!: Record<string, any>;
 
   // work in progress, having issues using multiple datasources
   // @OneToOne(() => AccountEntity, { createForeignKeyConstraints: false })
-  // @JoinColumn({ name: "id_account", referencedColumnName: "idAccount" })
+  // @JoinColumn({ referencedColumnName: "id_account" })
   // account!: AccountEntity;
 
   @BeforeInsert()
   generateIdAccount() {
-    if (!this.idProfile) {
-      this.idProfile = uuidv4();
+    if (!this.id_profile) {
+      this.id_profile = uuidv4();
     }
   }
 
   @BeforeInsert()
   setDates() {
-    if (!this.createdAt) {
-      this.createdAt = new Date();
+    if (!this.created_at) {
+      this.created_at = new Date();
     }
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

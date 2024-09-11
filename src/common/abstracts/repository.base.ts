@@ -47,11 +47,14 @@ export abstract class BaseRepository<T extends BaseEntity & ObjectLiteral>
     return this.repository.save(entity);
   }
 
-  async remove(idAccount: T["idAccount"]): Promise<DeleteResult> {
+  async remove<K extends keyof T>(
+    fieldName: K,
+    value: T[K],
+  ): Promise<DeleteResult> {
     return await this.repository
       .createQueryBuilder()
       .delete()
-      .where("id_account = :idAccount", { idAccount })
+      .where(`${String(fieldName)} = :value`, { value })
       .execute();
   }
 }

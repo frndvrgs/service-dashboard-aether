@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { AppException } from "../../../../common/exceptions/app.exception";
 import { ProfileEntity } from "../../domain/profile.entity";
+import { AppException } from "../../../../common/exceptions/app.exception";
 import { ProfileRepository } from "../../repositories/profile.repository";
+import crypto from "node:crypto";
 
 import type { ContentTypes } from "../../content.types";
 
@@ -12,29 +13,29 @@ export class CreateProfileService {
   async execute(
     service: ContentTypes.Payload.Service.CreateProfile.Input,
   ): Promise<ContentTypes.Payload.Service.CreateProfile.Output> {
-    const { input } = service;
-
-    // check if username input already exists
-    if (input.username != null) {
-      const existsUsername = await this.repository.exists({
-        where: { username: input.username },
-      });
-      if (existsUsername) {
-        throw new AppException(
-          "NOT_UNIQUE_VALUE",
-          409,
-          "username already exists.",
-          input.username,
-        );
-      }
+    const { account, input } = service;
+    if (!account) {
+      throw new AppException(
+        "INVALID_INPUT",
+        404,
+        "missing account argument value",
+        "account argument is required to create a profile",
+      );
     }
 
-    const newProfile = new ProfileEntity();
+    const entity = new ProfileEntity();
 
-    newProfile.username = input.username;
-    newProfile.name = input.name;
+    entity.id_account = account;
+    entity.username = crypto.randomBytes(5).toString("hex");
 
-    const resource = await this.repository.save(newProfile);
+    // adding OAuth account profile details
+    if (input?.document) {
+      entity.document = {
+        ...input.document,
+      };
+    }
+
+    const resource = await this.repository.save(entity);
     return {
       status: {
         description: "PROFILE_CREATED",

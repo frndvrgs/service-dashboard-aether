@@ -1,13 +1,14 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   Request,
   Res,
   UseFilters,
 } from "@nestjs/common";
-import { StatusHandler } from "../../../common/handlers/status.handler";
-import { SessionHandler } from "../../../common/handlers/session.handler";
+import { StatusService } from "../../../common/services/status.service";
+import { SessionService } from "../../../common/services/session.service";
 import { AppExceptionFilter } from "../../../common/filters/app.exception.filter";
 import { InterfaceExceptionFilter } from "../../../common/filters/interface.exception.filter";
 import { CreateSessionInput } from "../interface/v1/session.dto";
@@ -22,8 +23,8 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 export class SessionController {
   constructor(
     private createSessionService: services.CreateSessionService,
-    private session: SessionHandler,
-    private status: StatusHandler,
+    private sessionService: SessionService,
+    private statusService: StatusService,
   ) {}
 
   @Post("create")
@@ -35,10 +36,10 @@ export class SessionController {
       input,
     };
     const service = await this.createSessionService.execute(serviceInput);
-    const session = await this.session.create(reply, service.output);
+    const session = await this.sessionService.create(reply, service.output);
 
     reply.status(session.status.code).send({
-      status: this.status.createHttpStatus(session.status),
+      status: this.statusService.createHttpStatus(session.status),
     });
   }
 
@@ -47,11 +48,22 @@ export class SessionController {
     @Request() request: FastifyRequest,
     @Res() reply: FastifyReply,
   ): Promise<void> {
-    await this.session.authorize(request);
-    const session = this.session.remove(reply);
+    await this.sessionService.authorize(request);
+    const session = this.sessionService.remove(reply);
 
     reply.code(session.status.code).send({
-      status: this.status.createHttpStatus(session.status),
+      status: this.statusService.createHttpStatus(session.status),
+    });
+  }
+
+  @Get("verify")
+  async verifySession(
+    @Request() request: FastifyRequest,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    const identity = await this.sessionService.authorize(request);
+    reply.code(200).send({
+      scope: identity.scope,
     });
   }
 }

@@ -30,7 +30,7 @@ class WebServer {
       this.server = await NestFactory.create<NestFastifyApplication>(
         AppModule,
         new FastifyAdapter({
-          logger: this.settings.webServer.fastify.logger,
+          logger: false,
         }),
       );
 
@@ -47,7 +47,7 @@ class WebServer {
         this.settings.webServer.host,
       );
 
-      logger.info(":: web server started.");
+      logger.info(":: http web server initialized.");
     } catch (err) {
       console.error;
       throw new ServerException(
@@ -63,7 +63,7 @@ class WebServer {
   public async stop() {
     try {
       await this.server.close();
-      logger.info(":: web server stopped.");
+      logger.info(":: http web server terminated.");
     } catch (err) {
       throw new ServerException(
         "WEB_SERVER_ERROR",

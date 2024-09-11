@@ -110,8 +110,8 @@ namespace AccountTypes {
 
       namespace UpdateSubscription {
         interface Input {
-          subscription: string;
-          input: UpdateSubscription;
+          account: string;
+          input: UpdateSubscriptionInput;
         }
 
         interface Output extends BaseOutput {
@@ -121,10 +121,30 @@ namespace AccountTypes {
 
       namespace RemoveSubscription {
         interface Input {
-          subscription: string;
+          account: string;
         }
 
         type Output = BaseOutput;
+      }
+
+      namespace ReadGitHubData {
+        interface Input {
+          github_token: string;
+        }
+
+        interface Output {
+          output: Record<string, any>[];
+        }
+      }
+
+      namespace FetchAccountGitHub {
+        interface Input {
+          account: string;
+        }
+
+        interface Output extends BaseOutput {
+          output: AccountEntity;
+        }
       }
     }
   }

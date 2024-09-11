@@ -11,9 +11,19 @@ export class RemoveWorkService {
   async execute(
     service: ProductTypes.Payload.Service.RemoveWork.Input,
   ): Promise<ProductTypes.Payload.Service.RemoveWork.Output> {
-    const { work } = service;
+    const { account, work } = service;
 
-    const result = await this.repository.remove(work);
+    const resource = await this.repository.read({
+      where: {
+        id_account: account,
+        id_work: work,
+      },
+    });
+    if (!resource) {
+      throw new AppException("NOT_FOUND", 404, "resource not found.", work);
+    }
+
+    const result = await this.repository.remove("id_work", resource.id_work);
     if (result.affected === 0) {
       throw new AppException(
         "INTERNAL_SERVER_ERROR",

@@ -1,28 +1,28 @@
 import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
 import { SubscriptionEntity } from "../../domain/subscription.entity";
-import { StatusOutput } from "../../../../common/interface/common.model";
+import { Status } from "../../../../common/interface/common.model";
 
 @ObjectType()
 @Entity({ schema: "account_data_schema", name: "subscription" })
 export class Subscription implements Partial<SubscriptionEntity> {
-  @Field(() => ID, { name: "id_subscription" })
-  @Column("uuid", { name: "id_subscription" })
-  idSubscription!: string;
+  @Field(() => ID)
+  @Column("uuid")
+  id_subscription!: string;
 
-  @Field(() => ID, { name: "id_account" })
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Field(() => ID)
+  @Column("uuid")
+  id_account!: string;
 
-  @Field({ name: "created_at" })
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @Field()
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @Field({ name: "updated_at" })
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @Field()
+  @UpdateDateColumn()
+  updated_at!: Date;
 
   @Field()
   @Column()
@@ -32,15 +32,16 @@ export class Subscription implements Partial<SubscriptionEntity> {
   @Column()
   status!: string;
 
-  @Field(() => GraphQLJSONObject)
+  @Field(() => GraphQLJSONObject, { nullable: true })
+  @IsOptional()
   @Column({ type: "jsonb", default: "{}" })
-  document!: string;
+  document?: Record<string, any>;
 }
 
 @InputType()
 export class CreateSubscriptionInput {
   @Field()
-  @IsEmail()
+  @IsString()
   type!: string;
 
   @Field()
@@ -49,39 +50,41 @@ export class CreateSubscriptionInput {
 
   @Field(() => GraphQLJSONObject, { nullable: true })
   @IsOptional()
-  document?: string;
+  @Column({ type: "jsonb", default: "{}" })
+  document?: Record<string, any>;
 }
 
 @InputType()
 export class UpdateSubscriptionInput {
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
-  @IsEmail()
+  @IsString()
   type?: string;
 
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   status?: string;
 
   @Field(() => GraphQLJSONObject, { nullable: true })
   @IsOptional()
-  document?: string;
+  @Column({ type: "jsonb", default: "{}" })
+  document?: Record<string, any>;
 }
 
 @ObjectType()
-export class SubscriptionOutput {
-  @Field(() => StatusOutput)
-  status!: StatusOutput;
+export class SubscriptionResponse {
+  @Field(() => Status)
+  status!: Status;
 
   @Field(() => Subscription, { nullable: true })
   output?: Subscription;
 }
 
 @ObjectType()
-export class SubscriptionsOutput {
-  @Field(() => StatusOutput)
-  status!: StatusOutput;
+export class SubscriptionsResponse {
+  @Field(() => Status)
+  status!: Status;
 
   @Field(() => [Subscription], { nullable: true })
   output?: Subscription[];

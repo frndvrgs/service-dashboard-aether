@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
-import { StatusHandler } from "./handlers/status.handler";
-import { SessionHandler } from "./handlers/session.handler";
+import { EncryptionService } from "./services/encryption.service";
+import { StatusService } from "./services/status.service";
+import { SessionService } from "./services/session.service";
 
 @Module({
-  providers: [StatusHandler, SessionHandler],
-  exports: [StatusHandler, SessionHandler],
+  providers: [EncryptionService, StatusService, SessionService],
+  exports: [StatusService, SessionService, EncryptionService],
 })
 export class CommonModule {}

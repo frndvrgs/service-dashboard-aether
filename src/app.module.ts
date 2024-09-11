@@ -5,6 +5,7 @@ import { DatabaseModule } from "./core/services/database/database.module";
 import { GraphqlModule } from "./core/services/graphql/graphql.module";
 import { CommonModule } from "./common/common.module";
 import { AccountModule } from "./modules/account/account.module";
+import { AuditModule } from "./modules/audit/audit.module";
 import { ProductModule } from "./modules/product/product.module";
 import { ContentModule } from "./modules/content/content.module";
 
@@ -14,6 +15,7 @@ import { ContentModule } from "./modules/content/content.module";
     DatabaseModule,
     GraphqlModule,
     CommonModule,
+    AuditModule,
     AccountModule,
     ContentModule,
     ProductModule,

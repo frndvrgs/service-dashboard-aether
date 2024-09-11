@@ -2,13 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { SettingsService } from "../../core/services/settings/settings.service";
 import { DescriptionCodes, StatusCodes } from "../constants";
 
-import type { StatusModel, StatusOutput } from "../interface/common.model";
-import type { StatusHandlerPort } from "../ports/status.handler.port";
+import type { StatusModel, Status } from "../interface/common.model";
+import type { StatusServicePort } from "../ports/status.handler.port";
 
 @Injectable()
-export class StatusHandler
-  implements StatusHandlerPort<StatusModel, StatusOutput>
-{
+export class StatusService implements StatusServicePort<StatusModel, Status> {
   constructor(private settingsService: SettingsService) {}
   /**
    * Creates an HTTP status object based on the provided status input.
@@ -17,7 +15,7 @@ export class StatusHandler
    * @returns The generated HTTP status DTo object which returns as API response within service output.
    *
    */
-  createHttpStatus = (status: StatusModel): StatusOutput => {
+  createHttpStatus = (status: StatusModel): Status => {
     const statusList: CommonTypes.Handler.Status.CodeList = {
       "1xx": {
         type: "INFORMATION",
@@ -106,7 +104,7 @@ export class StatusHandler
     const type = statusList[category]?.type;
     const name = statusList[category]?.name[code as StatusCodes];
 
-    const output: StatusOutput = {
+    const output: Status = {
       type: type ?? "SERVER_ERROR",
       name: name ?? "INTERNAL_SERVER_ERROR",
       description: (status.description ?? "UNKNOWN_ERROR") as DescriptionCodes,
@@ -115,6 +113,7 @@ export class StatusHandler
       scope: isDevelopment ? status.scope : null,
       message: isDevelopment ? status.message : null,
       detail: isDevelopment ? status.detail : null,
+      isError: code < 200 || code >= 300,
     };
 
     return output;

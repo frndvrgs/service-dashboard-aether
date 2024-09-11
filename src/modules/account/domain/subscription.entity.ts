@@ -4,29 +4,26 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToOne,
-  JoinColumn,
   BeforeInsert,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
-import { AccountEntity } from "./account.entity";
 
 @Entity({ schema: "account_data_schema", name: "subscription" })
-export class SubscriptionEntity {
+export class SubscriptionEntity implements CommonTypes.BaseEntity {
   @PrimaryGeneratedColumn("identity", { type: "int" })
   id!: number;
 
-  @Column("uuid", { name: "id_subscription" })
-  idSubscription!: string;
+  @Column("uuid")
+  id_subscription!: string;
 
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Column("uuid")
+  id_account!: string;
 
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @UpdateDateColumn()
+  updated_at!: Date;
 
   @Column()
   type!: string;
@@ -35,24 +32,20 @@ export class SubscriptionEntity {
   status!: string;
 
   @Column({ type: "jsonb", default: "{}" })
-  document!: string;
-
-  @OneToOne(() => AccountEntity)
-  @JoinColumn({ name: "id_account" })
-  account!: AccountEntity;
+  document!: Record<string, any>;
 
   @BeforeInsert()
   generateIdAccount() {
-    if (!this.idAccount) {
-      this.idAccount = uuidv4();
+    if (!this.id_subscription) {
+      this.id_subscription = uuidv4();
     }
   }
 
   @BeforeInsert()
   setDates() {
-    if (!this.createdAt) {
-      this.createdAt = new Date();
+    if (!this.created_at) {
+      this.created_at = new Date();
     }
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { AppException } from "../../../../common/exceptions/app.exception";
 import { WorkEntity } from "../../domain/work.entity";
 import { WorkRepository } from "../../repositories/work.repository";
+import { SourceEntity } from "../../domain/source.entity";
+import { SourceRepository } from "../../repositories/source.repository";
 
 import { AccountRepository } from "../../../account/repositories/account.repository";
 import { SubscriptionRepository } from "../../../account/repositories/subscription.repository";
@@ -13,6 +15,7 @@ import type { ProductTypes } from "../../product.types";
 export class CreateWorkService {
   constructor(
     private workRepository: WorkRepository,
+    private sourceRepository: SourceRepository,
     private accountRepository: AccountRepository,
     private subscriptionRepository: SubscriptionRepository,
     private featureRepository: FeatureRepository,
@@ -24,7 +27,7 @@ export class CreateWorkService {
     const { account, feature, input } = service;
 
     const accountResource = await this.accountRepository.read({
-      where: { idAccount: account },
+      where: { id_account: account },
     });
     if (!accountResource) {
       throw new AppException(
@@ -35,8 +38,20 @@ export class CreateWorkService {
       );
     }
 
+    const subscriptionResource = await this.subscriptionRepository.read({
+      where: { id_account: accountResource.id_account },
+    });
+    if (!subscriptionResource) {
+      throw new AppException(
+        "NOT_FOUND",
+        404,
+        "subscription does not exist.",
+        accountResource.id_account,
+      );
+    }
+
     const featureResource = await this.featureRepository.read({
-      where: { idFeature: feature },
+      where: { id_feature: feature },
     });
     if (!featureResource) {
       throw new AppException(
@@ -47,42 +62,69 @@ export class CreateWorkService {
       );
     }
 
-    const subscriptionResource = await this.subscriptionRepository.read({
-      where: { idAccount: accountResource.idAccount },
-    });
-    if (!subscriptionResource) {
-      throw new AppException(
-        "NOT_FOUND",
-        404,
-        "subscription does not exist.",
-        accountResource.idAccount,
-      );
-    }
-
     // check if subscription type allows the selected feature
     if (
-      !featureResource.subscriptionScope.includes(subscriptionResource.type)
+      !featureResource.subscription_scope.includes(subscriptionResource.type)
     ) {
       throw new AppException(
         "NOT_ALLOWED",
         403,
         "subscription type does not allow the use of this feature.",
-        `type: ${subscriptionResource.type}, input scope: ${featureResource.subscriptionScope}`,
+        `type: ${subscriptionResource.type}, input scope: ${featureResource.subscription_scope}`,
       );
     }
 
-    const newWork = new WorkEntity();
+    let sourceResource: SourceEntity | null;
 
-    newWork.idAccount = accountResource.idAccount;
-    newWork.idFeature = featureResource.idFeature;
-    newWork.name = input.name;
-    newWork.level = input.level;
-    newWork.document = {
-      feature_name: featureResource.name,
-      feature_tier: subscriptionResource.type,
+    // check if this repository is already stored
+    sourceResource = await this.sourceRepository.read({
+      where: { id_repository: input.id_repository },
+    });
+
+    if (!sourceResource) {
+      // if not stored, create a new source entity
+      const sourceEntity = new SourceEntity();
+
+      sourceEntity.id_account = accountResource.id_account;
+      sourceEntity.id_repository = input.id_repository;
+
+      sourceResource = await this.sourceRepository.save(sourceEntity);
+    }
+
+    const workEntity = new WorkEntity();
+
+    // if repository is already stored, update the work with has_code_dump
+    workEntity.has_code_dump = sourceResource.has_code_dump;
+
+    // mount the new work entity
+    workEntity.id_account = accountResource.id_account;
+    workEntity.id_feature = featureResource.id_feature;
+    workEntity.id_repository = input.id_repository;
+    workEntity.name = input.name;
+    workEntity.repository_name = input.repository_name;
+    workEntity.process_type = featureResource.process_type;
+    workEntity.process_status = "idle";
+
+    // check if has a custom initial level value
+    if (input.level) {
+      workEntity.level = input.level;
+    }
+
+    // create the nosql document with input and new details
+    workEntity.document = {
+      ...input.document,
+      feature: {
+        name: featureResource.name,
+        type: subscriptionResource.type,
+      },
+      source: {
+        id_repository: sourceResource.id_repository,
+        has_code_dump: sourceResource.has_code_dump,
+      },
     };
 
-    const resource = await this.workRepository.save(newWork);
+    // save the entity on the repository
+    const workResource = await this.workRepository.save(workEntity);
 
     return {
       status: {
@@ -90,7 +132,7 @@ export class CreateWorkService {
         code: 201,
         context: "APPLICATION",
       },
-      output: resource,
+      output: workResource,
     };
   }
 }

@@ -1,9 +1,9 @@
 import { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { BaseException } from "./exception.base";
-import { StatusHandler } from "../handlers/status.handler";
+import { StatusService } from "../services/status.service";
 
 export abstract class BaseExceptionFilter implements ExceptionFilter {
-  constructor(protected status: StatusHandler) {}
+  constructor(protected status: StatusService) {}
 
   catch(exception: BaseException, host: ArgumentsHost) {
     if (host.getType() === "http") {

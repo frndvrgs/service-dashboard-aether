@@ -1,28 +1,35 @@
-import { Resolver, Query, Mutation, Args, ID } from "@nestjs/graphql";
-import { UseFilters, ParseUUIDPipe } from "@nestjs/common";
+import { Resolver, Query, Mutation, Args, ID, Context } from "@nestjs/graphql";
+import { UseFilters } from "@nestjs/common";
 import { queryTools } from "../../../common/interface/v1/helpers/query-tools";
 import { OptionsInput } from "../../../common/interface/v1/common.dto";
-import { StatusHandler } from "../../../common/handlers/status.handler";
+import { SessionService } from "../../../common/services/session.service";
+import { StatusService } from "../../../common/services/status.service";
+import { InterfaceExceptionFilter } from "../../../common/filters/interface.exception.filter";
 import { AppExceptionFilter } from "../../../common/filters/app.exception.filter";
 import {
   Feature,
   CreateFeatureInput,
   UpdateFeatureInput,
-  FeatureOutput,
-  FeaturesOutput,
+  FeatureResponse,
+  FeaturesResponse,
 } from "../interface/v1/feature.dto";
 
 import * as services from "../services/feature";
 
+import type { ContentTypes } from "../content.types";
+import type { MercuriusContext } from "mercurius";
+
 @Resolver(() => Feature)
 @UseFilters(AppExceptionFilter)
+@UseFilters(InterfaceExceptionFilter)
 export class FeatureResolver {
   private queryOptionsHelper: ReturnType<
     typeof queryTools.createQueryOptionsHelper<Feature>
   >;
 
   constructor(
-    private status: StatusHandler,
+    private sessionService: SessionService,
+    private status: StatusService,
     private listFeaturesService: services.ListFeaturesService,
     private readFeatureService: services.ReadFeatureService,
     private createFeatureService: services.CreateFeatureService,
@@ -30,21 +37,21 @@ export class FeatureResolver {
     private removeFeatureService: services.RemoveFeatureService,
   ) {
     const allowedSelectFields: (keyof Feature)[] = [
-      "idFeature",
+      "id_feature",
       "name",
-      "subscriptionScope",
-      "createdAt",
-      "updatedAt",
+      "subscription_scope",
+      "created_at",
+      "updated_at",
     ];
     this.queryOptionsHelper =
       queryTools.createQueryOptionsHelper<Feature>(allowedSelectFields);
   }
 
-  @Query(() => FeaturesOutput)
+  @Query(() => FeaturesResponse)
   async listFeatures(
-    @Args("options", { nullable: true }) options?: OptionsInput,
-  ): Promise<FeaturesOutput> {
-    const serviceInput = {
+    @Args("options") options: OptionsInput,
+  ): Promise<FeaturesResponse> {
+    const serviceInput: ContentTypes.Payload.Service.ListFeatures.Input = {
       options: this.queryOptionsHelper.mapQueryOptions(options),
     };
     const service = await this.listFeaturesService.execute(serviceInput);
@@ -54,11 +61,11 @@ export class FeatureResolver {
     };
   }
 
-  @Query(() => FeatureOutput, { nullable: true })
+  @Query(() => FeatureResponse)
   async readFeature(
-    @Args("options", { nullable: false }) options: OptionsInput,
-  ): Promise<FeatureOutput> {
-    const serviceInput = {
+    @Args("options") options: OptionsInput,
+  ): Promise<FeatureResponse> {
+    const serviceInput: ContentTypes.Payload.Service.ReadFeature.Input = {
       options: this.queryOptionsHelper.mapQueryOptions(options),
     };
     const service = await this.readFeatureService.execute(serviceInput);
@@ -68,11 +75,18 @@ export class FeatureResolver {
     };
   }
 
-  @Mutation(() => FeatureOutput)
+  @Mutation(() => FeatureResponse)
   async createFeature(
+    @Context() context: MercuriusContext,
     @Args("input") input: CreateFeatureInput,
-  ): Promise<FeatureOutput> {
-    const serviceInput = {
+  ): Promise<FeatureResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["service"];
+
+    // authorizing and retrieving identity values from session
+    await this.sessionService.authorize(context.reply.request, requiredScopes);
+    const serviceInput: ContentTypes.Payload.Service.CreateFeature.Input = {
       input,
     };
     const service = await this.createFeatureService.execute(serviceInput);
@@ -82,12 +96,19 @@ export class FeatureResolver {
     };
   }
 
-  @Mutation(() => FeatureOutput)
+  @Mutation(() => FeatureResponse)
   async updateFeature(
-    @Args("feature", { type: () => ID }, ParseUUIDPipe) feature: string,
+    @Context() context: MercuriusContext,
+    @Args("feature", { type: () => ID }) feature: string,
     @Args("input") input: UpdateFeatureInput,
-  ): Promise<FeatureOutput> {
-    const serviceInput = {
+  ): Promise<FeatureResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["service"];
+
+    // authorizing and retrieving identity values from session
+    await this.sessionService.authorize(context.reply.request, requiredScopes);
+    const serviceInput: ContentTypes.Payload.Service.UpdateFeature.Input = {
       feature,
       input,
     };
@@ -98,11 +119,18 @@ export class FeatureResolver {
     };
   }
 
-  @Mutation(() => FeatureOutput)
+  @Mutation(() => FeatureResponse)
   async removeFeature(
-    @Args("feature", { type: () => ID }, ParseUUIDPipe) feature: string,
-  ): Promise<FeatureOutput> {
-    const serviceInput = {
+    @Context() context: MercuriusContext,
+    @Args("feature", { type: () => ID }) feature: string,
+  ): Promise<FeatureResponse> {
+    // minimum scope required for this control operation
+
+    const requiredScopes = ["service"];
+
+    // authorizing and retrieving identity values from session
+    await this.sessionService.authorize(context.reply.request, requiredScopes);
+    const serviceInput: ContentTypes.Payload.Service.RemoveFeature.Input = {
       feature,
     };
     const service = await this.removeFeatureService.execute(serviceInput);

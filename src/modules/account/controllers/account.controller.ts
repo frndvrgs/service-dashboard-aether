@@ -6,8 +6,8 @@ import {
   Res,
   UseFilters,
 } from "@nestjs/common";
-import { StatusHandler } from "../../../common/handlers/status.handler";
-import { SessionHandler } from "../../../common/handlers/session.handler";
+import { StatusService } from "../../../common/services/status.service";
+import { SessionService } from "../../../common/services/session.service";
 import { AppExceptionFilter } from "../../../common/filters/app.exception.filter";
 import { InterfaceExceptionFilter } from "../../../common/filters/interface.exception.filter";
 import { UpsertAccountInput } from "../interface/v1/account.dto";
@@ -22,8 +22,8 @@ import type { FastifyRequest, FastifyReply } from "fastify";
 export class AccountController {
   constructor(
     private upsertAccountService: services.UpsertAccountService,
-    private session: SessionHandler,
-    private status: StatusHandler,
+    private sessionService: SessionService,
+    private statusService: StatusService,
   ) {}
 
   @Post("sync")
@@ -35,12 +35,13 @@ export class AccountController {
     const serviceInput = {
       input,
     };
-    await this.session.verifyOAuth(request);
+    await this.sessionService.verifyOAuth(request);
     const service = await this.upsertAccountService.execute(serviceInput);
-    const session = await this.session.create(reply, service.output);
+    const session = await this.sessionService.create(reply, service.output);
 
     reply.status(session.status.code).send({
-      status: this.status.createHttpStatus(session.status),
+      status: this.statusService.createHttpStatus(session.status),
+      output: service.output,
     });
   }
 }

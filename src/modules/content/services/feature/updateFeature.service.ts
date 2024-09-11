@@ -14,13 +14,30 @@ export class UpdateFeatureService {
     const { feature, input } = service;
 
     const resource = await this.repository.read({
-      where: { idFeature: feature },
+      where: { id_feature: feature },
     });
     if (!resource) {
       throw new AppException("NOT_FOUND", 404, "resource not found.", feature);
     }
 
-    Object.assign(resource, input);
+    const updateData = { ...resource };
+
+    if (input.name) {
+      updateData.name = input.name;
+    }
+
+    if (input.subscription_scope) {
+      updateData.subscription_scope = input.subscription_scope;
+    }
+
+    if (input.document) {
+      updateData.document = {
+        ...updateData.document,
+        ...input.document,
+      };
+    }
+
+    Object.assign(resource, updateData);
 
     const updatedResource = await this.repository.save(resource);
 

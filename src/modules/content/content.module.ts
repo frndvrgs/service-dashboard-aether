@@ -30,6 +30,11 @@ import * as feature from "./services/feature";
     feature.UpdateFeatureService,
     feature.RemoveFeatureService,
   ],
-  exports: [ProfileRepository, FeatureRepository],
+  exports: [
+    ProfileRepository,
+    FeatureRepository,
+    profile.CreateProfileService,
+    profile.UpdateProfileService,
+  ],
 })
 export class ContentModule {}

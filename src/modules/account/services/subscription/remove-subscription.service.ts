@@ -11,9 +11,9 @@ export class RemoveSubscriptionService {
   async execute(
     service: AccountTypes.Payload.Service.RemoveSubscription.Input,
   ): Promise<AccountTypes.Payload.Service.RemoveSubscription.Output> {
-    const { subscription } = service;
+    const { account } = service;
 
-    const result = await this.repository.remove(subscription);
+    const result = await this.repository.remove("id_account", account);
     if (result.affected === 0) {
       throw new AppException(
         "INTERNAL_SERVER_ERROR",

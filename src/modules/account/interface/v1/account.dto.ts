@@ -1,76 +1,101 @@
 import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
-import { IsEmail, IsOptional, IsArray, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { StatusOutput } from "../../../../common/interface/common.model";
+import { Status } from "../../../../common/interface/common.model";
 
 import { AccountEntity } from "../../domain/account.entity";
 
 @ObjectType()
 @Entity({ schema: "account_read_schema", name: "account" })
 export class Account implements Partial<AccountEntity> {
-  @Field(() => ID, { name: "id_account", nullable: true })
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Field(() => ID)
+  @Column("uuid")
+  id_account!: string;
 
-  @Field({ name: "created_at", nullable: true })
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @Field()
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @Field({ name: "updated_at", nullable: true })
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @Field()
+  @UpdateDateColumn()
+  updated_at!: Date;
 
-  @Field(() => [String], { nullable: true })
+  @Field(() => [String])
   @Column("text", { array: true })
   email!: string[];
 
-  @Field({ nullable: true })
+  @Field()
   @Column({ default: "user" })
   scope!: string;
 
   @Field(() => GraphQLJSONObject, { nullable: true })
+  @IsOptional()
   @Column({ type: "jsonb", default: "{}" })
-  document!: Record<string, any>;
+  document?: Record<string, any>;
+
+  @Field(() => Boolean)
+  @Column({
+    type: "boolean",
+    generatedType: "STORED",
+    asExpression: "github_token IS NOT NULL",
+  })
+  has_github_token!: boolean;
 }
 
 @InputType()
 export class UpsertAccountInput {
-  @Field(() => [String])
-  @IsString()
+  @Field()
+  @IsEmail()
   email!: string;
 
-  @Field(() => GraphQLJSONObject)
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  scope?: string;
+
+  @Field(() => GraphQLJSONObject, { nullable: true })
+  @IsOptional()
   @Column({ type: "jsonb", default: "{}" })
-  details!: Record<string, any>;
+  document?: Record<string, any>;
 }
 
 @InputType()
 export class UpdateAccountInput {
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
-  @IsArray()
-  @IsEmail({}, { each: true })
+  @IsEmail()
   email?: string;
 
-  @Field(() => GraphQLJSONObject)
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  github_token?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  scope?: string;
+
+  @Field(() => GraphQLJSONObject, { nullable: true })
+  @IsOptional()
   @Column({ type: "jsonb", default: "{}" })
-  details?: Record<string, any>;
+  document?: Record<string, any>;
 }
 
 @ObjectType()
-export class AccountOutput {
-  @Field(() => StatusOutput)
-  status!: StatusOutput;
+export class AccountResponse {
+  @Field(() => Status)
+  status!: Status;
 
   @Field(() => Account, { nullable: true })
   output?: Account;
 }
 
 @ObjectType()
-export class AccountsOutput {
-  @Field(() => StatusOutput)
-  status!: StatusOutput;
+export class AccountsResponse {
+  @Field(() => Status)
+  status!: Status;
 
   @Field(() => [Account], { nullable: true })
   output?: Account[];

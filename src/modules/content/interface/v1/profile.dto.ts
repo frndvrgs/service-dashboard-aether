@@ -2,80 +2,80 @@ import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { ObjectType, InputType, Field, ID } from "@nestjs/graphql";
 import { IsOptional, IsString } from "class-validator";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { StatusOutput } from "../../../../common/interface/common.model";
+import { Status } from "../../../../common/interface/common.model";
 
 import { ProfileEntity } from "../../domain/profile.entity";
 
 @ObjectType()
 @Entity({ schema: "content_read_schema", name: "profile" })
 export class Profile implements Partial<ProfileEntity> {
-  @Field(() => ID, { name: "id_profile", nullable: true })
-  @Column("uuid", { name: "id_profile" })
-  idProfile!: string;
+  @Field(() => ID)
+  @Column("uuid")
+  id_profile!: string;
 
-  @Field(() => ID, { name: "id_account", nullable: true })
-  @Column("uuid", { name: "id_account" })
-  idAccount!: string;
+  @Field(() => ID)
+  @Column("uuid")
+  id_account!: string;
 
-  @Field({ name: "created_at", nullable: true })
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @Field()
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @Field({ name: "updated_at", nullable: true })
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @Field()
+  @UpdateDateColumn()
+  updated_at!: Date;
 
-  @Field({ nullable: true })
+  @Field()
   @Column()
   username!: string;
 
   @Field({ nullable: true })
   @Column()
-  name!: string;
+  name?: string;
 
-  @Field(() => GraphQLJSONObject, { nullable: true })
+  @Field(() => GraphQLJSONObject)
   @Column({ type: "jsonb", default: "{}" })
   document!: Record<string, any>;
 }
 
 @InputType()
 export class CreateProfileInput {
-  @Field()
-  @IsString()
-  username!: string;
-
-  @Field()
-  @IsOptional()
-  @IsString()
-  name!: string;
+  @Field(() => GraphQLJSONObject)
+  @Column({ type: "jsonb", default: "{}" })
+  document!: Record<string, any>;
 }
 
 @InputType()
 export class UpdateProfileInput {
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   username?: string;
 
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   name?: string;
+
+  @Field(() => GraphQLJSONObject, { nullable: true })
+  @IsOptional()
+  @Column({ type: "jsonb", default: "{}" })
+  document?: Record<string, any>;
 }
 
 @ObjectType()
-export class ProfileOutput {
-  @Field(() => StatusOutput)
-  status!: StatusOutput;
+export class ProfileResponse {
+  @Field(() => Status)
+  status!: Status;
 
   @Field(() => Profile, { nullable: true })
   output?: Profile;
 }
 
 @ObjectType()
-export class ProfilesOutput {
-  @Field(() => StatusOutput)
-  status!: StatusOutput;
+export class ProfilesResponse {
+  @Field(() => Status)
+  status!: Status;
 
   @Field(() => [Profile], { nullable: true })
   output?: Profile[];

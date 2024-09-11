@@ -1,3 +1,3 @@
-export interface StatusHandlerPort<HttpStatusInput, HttpStatusOutput> {
+export interface StatusServicePort<HttpStatusInput, HttpStatusOutput> {
   createHttpStatus(status?: HttpStatusInput): HttpStatusOutput;
 }

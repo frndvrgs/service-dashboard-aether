@@ -1,4 +1,11 @@
-import { Field, InputType, Int, registerEnumType } from "@nestjs/graphql";
+import {
+  ObjectType,
+  Field,
+  InputType,
+  Int,
+  registerEnumType,
+} from "@nestjs/graphql";
+import { Status } from "../common.model";
 
 // # GraphQL Schema Documentation
 
@@ -100,7 +107,7 @@ import { Field, InputType, Int, registerEnumType } from "@nestjs/graphql";
 //       { field: "tags", operator: ARRAY_CONTAINS, value: "important" }
 //     ],
 //     order: [
-//       { field: "createdAt", direction: "DESC" }
+//       { field: "created_at", direction: "DESC" }
 //     ],
 //     relations: ["profile"],
 //     select: ["id", "name", "email", "tags"],
@@ -146,7 +153,7 @@ export class WhereInput {
   field?: string;
 
   @Field(() => WhereOperator, { nullable: true })
-  operator?: WhereOperator;
+  operator?: `${WhereOperator}`;
 
   @Field(() => String, { nullable: true })
   value?: string;
@@ -192,4 +199,10 @@ export class OptionsInput {
 
   @Field(() => Boolean, { nullable: true })
   cache?: boolean;
+}
+
+@ObjectType()
+export class StatusResponse {
+  @Field(() => Status)
+  status!: Status;
 }

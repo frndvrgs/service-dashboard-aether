@@ -13,36 +13,39 @@ export class FeatureEntity implements CommonTypes.BaseEntity {
   @PrimaryGeneratedColumn("identity", { type: "int" })
   id!: number;
 
-  @Column("uuid", { name: "id_feature" })
-  idFeature!: string;
+  @Column("uuid")
+  id_feature!: string;
 
-  @CreateDateColumn({ name: "created_at" })
-  createdAt!: Date;
+  @CreateDateColumn()
+  created_at!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
-  updatedAt!: Date;
+  @UpdateDateColumn()
+  updated_at!: Date;
 
   @Column()
   name!: string;
 
+  @Column()
+  process_type!: string;
+
   @Column("text", { array: true })
-  subscriptionScope!: string[];
+  subscription_scope!: string[];
 
   @Column({ type: "jsonb", default: "{}" })
   document!: Record<string, any>;
 
   @BeforeInsert()
   generateIdAccount() {
-    if (!this.idFeature) {
-      this.idFeature = uuidv4();
+    if (!this.id_feature) {
+      this.id_feature = uuidv4();
     }
   }
 
   @BeforeInsert()
   setDates() {
-    if (!this.createdAt) {
-      this.createdAt = new Date();
+    if (!this.created_at) {
+      this.created_at = new Date();
     }
-    this.updatedAt = new Date();
+    this.updated_at = new Date();
   }
 }

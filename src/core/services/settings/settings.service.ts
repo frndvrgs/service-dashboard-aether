@@ -27,6 +27,9 @@ export class SettingsService {
     return {
       name: `${this.configService.get<string>("SERVICE_NAME")} ${this.configService.get<string>("SERVICE_VERSION")} ${environment}`,
       environment,
+      encryption: {
+        masterKey: this.configService.get<string>("ENCRYPTION_MASTER_KEY"),
+      },
     };
   }
 
@@ -55,7 +58,7 @@ export class SettingsService {
           this.configService.get<string>("SESSION_COOKIE_SECRET") ?? undefined,
       },
       cors: {
-        origin: "http://localhost:3000",
+        origin: "*",
         credentials: true,
         allowedHeaders: ["Content-Type", "Authorization"],
       },

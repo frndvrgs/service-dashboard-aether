@@ -13,12 +13,17 @@ export class CreateFeatureService {
   ): Promise<ContentTypes.Payload.Service.CreateFeature.Output> {
     const { input } = service;
 
-    const newFeature = new FeatureEntity();
+    const entity = new FeatureEntity();
 
-    newFeature.name = input.name;
-    newFeature.subscriptionScope = input.subscriptionScope;
+    entity.name = input.name;
+    entity.process_type = input.process_type;
+    entity.subscription_scope = input.subscription_scope;
 
-    const resource = await this.repository.save(newFeature);
+    entity.document = {
+      ...input.document,
+    };
+
+    const resource = await this.repository.save(entity);
     return {
       status: {
         description: "FEATURE_CREATED",

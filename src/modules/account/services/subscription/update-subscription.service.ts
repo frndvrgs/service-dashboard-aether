@@ -11,21 +11,33 @@ export class UpdateSubscriptionService {
   async execute(
     service: AccountTypes.Payload.Service.UpdateSubscription.Input,
   ): Promise<AccountTypes.Payload.Service.UpdateSubscription.Output> {
-    const { subscription, input } = service;
+    const { account, input } = service;
 
     const resource = await this.repository.read({
-      where: { idSubscription: subscription },
+      where: { id_account: account },
     });
     if (!resource) {
-      throw new AppException(
-        "NOT_FOUND",
-        404,
-        "resource not found.",
-        subscription,
-      );
+      throw new AppException("NOT_FOUND", 404, "resource not found.", account);
     }
 
-    Object.assign(resource, input);
+    const updateData = { ...resource };
+
+    if (input.type) {
+      updateData.type = input.type;
+    }
+
+    if (input.status) {
+      updateData.status = input.status;
+    }
+
+    if (input.document) {
+      updateData.document = {
+        ...updateData.document,
+        ...input.document,
+      };
+    }
+
+    Object.assign(resource, updateData);
 
     const updatedResource = await this.repository.save(resource);
 

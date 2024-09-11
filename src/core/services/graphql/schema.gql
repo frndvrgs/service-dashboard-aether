@@ -3,32 +3,34 @@
 # ------------------------------------------------------
 
 type Account {
-  created_at: DateTime
+  created_at: DateTime!
   document: JSONObject
-  email: [String!]
-  id_account: ID
-  scope: String
-  updated_at: DateTime
+  email: [String!]!
+  has_github_token: Boolean!
+  id_account: ID!
+  scope: String!
+  updated_at: DateTime!
 }
 
-type AccountOutput {
+type AccountResponse {
   output: Account
-  status: StatusOutput!
+  status: Status!
 }
 
-type AccountsOutput {
+type AccountsResponse {
   output: [Account!]
-  status: StatusOutput!
+  status: Status!
 }
 
 input CreateFeatureInput {
+  document: JSONObject
   name: String!
-  subscriptionScope: [String!]
+  process_type: String!
+  subscription_scope: [String!]!
 }
 
 input CreateProfileInput {
-  name: String!
-  username: String!
+  document: JSONObject!
 }
 
 input CreateSubscriptionInput {
@@ -38,8 +40,11 @@ input CreateSubscriptionInput {
 }
 
 input CreateWorkInput {
-  level: Float!
+  document: JSONObject
+  id_repository: String!
+  level: Float
   name: String!
+  repository_name: String
 }
 
 """
@@ -59,10 +64,12 @@ enum DescriptionCodes {
   FEATURE_CREATED
   FEATURE_REMOVED
   FEATURE_UPDATED
+  GITHUB_API_ERROR
   INACTIVE_TOKEN
   INTERNAL_SERVER_ERROR
   INVALID_AUTH_SCOPE
   INVALID_AUTH_TOKEN
+  INVALID_COMMAND
   INVALID_INPUT
   INVALID_SESSION
   INVALID_SIGNATURE
@@ -71,6 +78,7 @@ enum DescriptionCodes {
   INVALID_VALUE
   INVALID_VALUE_FORMAT
   INVALID_VALUE_LENGTH
+  MISSING_ENCRYPTION_KEY
   MISSING_PAYLOAD
   NON_NULLABLE_VALUE
   NOTHING_FOUND
@@ -95,28 +103,30 @@ enum DescriptionCodes {
   VALIDATION_ERROR
   WEB_SERVER_ERROR
   WORKS_LISTED
+  WORK_COMMAND_PROCESSED
   WORK_CREATED
   WORK_REMOVED
   WORK_UPDATED
 }
 
 type Feature {
-  created_at: DateTime
+  created_at: DateTime!
   document: JSONObject
-  id_feature: ID
-  name: String
-  subscriptionScope: [String!]
-  updated_at: DateTime
+  id_feature: ID!
+  name: String!
+  process_type: String!
+  subscription_scope: [String!]!
+  updated_at: DateTime!
 }
 
-type FeatureOutput {
+type FeatureResponse {
   output: Feature
-  status: StatusOutput!
+  status: Status!
 }
 
-type FeaturesOutput {
+type FeaturesResponse {
   output: [Feature!]
-  status: StatusOutput!
+  status: Status!
 }
 
 """
@@ -125,21 +135,23 @@ The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](
 scalar JSONObject
 
 type Mutation {
-  createFeature(input: CreateFeatureInput!): FeatureOutput!
-  createProfile(account: ID!, input: CreateProfileInput!): ProfileOutput!
-  createSubscription(account: ID!, input: CreateSubscriptionInput!): SubscriptionOutput!
-  createWork(account: ID!, feature: ID!, input: CreateWorkInput!): WorkOutput!
-  removeAccount(account: ID!): AccountOutput!
-  removeFeature(feature: ID!): FeatureOutput!
-  removeProfile(profile: ID!): ProfileOutput!
-  removeSubscription(subscription: ID!): SubscriptionOutput!
-  removeWork(work: ID!): WorkOutput!
-  syncAccount(input: UpsertAccountInput!): AccountOutput!
-  updateAccount(account: ID!, input: UpdateAccountInput!): AccountOutput!
-  updateFeature(feature: ID!, input: UpdateFeatureInput!): FeatureOutput!
-  updateProfile(input: UpdateProfileInput!, profile: ID!): ProfileOutput!
-  updateSubscription(input: UpdateSubscriptionInput!, subscription: ID!): SubscriptionOutput!
-  updateWork(input: UpdateWorkInput!, work: ID!): WorkOutput!
+  commandWork(account: ID, command: String!, work: ID!): WorkResponse!
+  createFeature(input: CreateFeatureInput!): FeatureResponse!
+  createProfile(account: ID, input: CreateProfileInput!): ProfileResponse!
+  createSubscription(account: ID, input: CreateSubscriptionInput!): SubscriptionResponse!
+  createWork(account: ID, feature: ID!, input: CreateWorkInput!): WorkResponse!
+  fetchAccountGitHub(account: ID): AccountResponse!
+  removeAccount(account: ID): StatusResponse!
+  removeFeature(feature: ID!): FeatureResponse!
+  removeProfile(account: ID): ProfileResponse!
+  removeSubscription(account: ID): SubscriptionResponse!
+  removeWork(account: ID, work: ID!): WorkResponse!
+  updateAccount(account: ID, input: UpdateAccountInput!): AccountResponse!
+  updateFeature(feature: ID!, input: UpdateFeatureInput!): FeatureResponse!
+  updateProfile(account: ID, input: UpdateProfileInput!): ProfileResponse!
+  updateSubscription(account: ID, input: UpdateSubscriptionInput!): SubscriptionResponse!
+  updateWork(account: ID, input: UpdateWorkInput!, work: ID!): WorkResponse!
+  upsertAccount(input: UpsertAccountInput!): AccountResponse!
 }
 
 input OptionsInput {
@@ -160,52 +172,57 @@ input OrderInput {
 }
 
 type Profile {
-  created_at: DateTime
-  document: JSONObject
-  id_account: ID
-  id_profile: ID
+  created_at: DateTime!
+  document: JSONObject!
+  id_account: ID!
+  id_profile: ID!
   name: String
-  updated_at: DateTime
-  username: String
+  updated_at: DateTime!
+  username: String!
 }
 
-type ProfileOutput {
+type ProfileResponse {
   output: Profile
-  status: StatusOutput!
+  status: Status!
 }
 
-type ProfilesOutput {
+type ProfilesResponse {
   output: [Profile!]
-  status: StatusOutput!
+  status: Status!
 }
 
 type Query {
-  listAccounts(options: OptionsInput): AccountsOutput!
-  listFeatures(options: OptionsInput): FeaturesOutput!
-  listProfiles(options: OptionsInput): ProfilesOutput!
-  listSubscriptions(options: OptionsInput): SubscriptionsOutput!
-  listWorks(options: OptionsInput): WorksOutput!
-  readAccount(options: OptionsInput!): AccountOutput
-  readFeature(options: OptionsInput!): FeatureOutput
-  readProfile(options: OptionsInput!): ProfileOutput
-  readSubscription(options: OptionsInput!): SubscriptionOutput
-  readWork(options: OptionsInput!): WorkOutput
+  listAccounts(options: OptionsInput!): AccountsResponse!
+  listFeatures(options: OptionsInput!): FeaturesResponse!
+  listProfiles(options: OptionsInput!): ProfilesResponse!
+  listSubscriptions(options: OptionsInput!): SubscriptionsResponse!
+  listWorks(options: OptionsInput): WorksResponse!
+  readAccount(options: OptionsInput): AccountResponse!
+  readFeature(options: OptionsInput!): FeatureResponse!
+  readProfile(options: OptionsInput): ProfileResponse!
+  readSubscription(options: OptionsInput): SubscriptionResponse!
+  readWork(options: OptionsInput): WorkResponse!
 }
 
-type StatusOutput {
+type Status {
   code: Int
   context: String
   description: DescriptionCodes
   detail: String
+  isError: Boolean!
   message: String
   name: String
   scope: String
   type: String
 }
 
+type StatusResponse {
+  status: Status!
+}
+
 type Subscription {
   created_at: DateTime!
-  document: JSONObject!
+  document: JSONObject
   id_account: ID!
   id_subscription: ID!
   status: String!
@@ -213,45 +230,53 @@ type Subscription {
   updated_at: DateTime!
 }
 
-type SubscriptionOutput {
+type SubscriptionResponse {
   output: Subscription
-  status: StatusOutput!
+  status: Status!
 }
 
-type SubscriptionsOutput {
+type SubscriptionsResponse {
   output: [Subscription!]
-  status: StatusOutput!
+  status: Status!
 }
 
 input UpdateAccountInput {
-  details: JSONObject!
-  email: String!
+  document: JSONObject
+  email: String
+  github_token: String
+  scope: String
 }
 
 input UpdateFeatureInput {
-  name: String!
-  subscriptionScope: [String!]
+  document: JSONObject
+  name: String
+  process_type: String
+  subscription_scope: [String!]
 }
 
 input UpdateProfileInput {
-  name: String!
-  username: String!
+  document: JSONObject
+  name: String
+  username: String
 }
 
 input UpdateSubscriptionInput {
   document: JSONObject
-  status: String!
-  type: String!
+  status: String
+  type: String
 }
 
 input UpdateWorkInput {
-  level: Float!
-  name: String!
+  document: JSONObject
+  level: Float
+  name: String
+  process_type: String
 }
 
 input UpsertAccountInput {
-  details: JSONObject!
-  email: [String!]!
+  document: JSONObject
+  email: String!
+  scope: String
 }
 
 input WhereInput {
@@ -278,22 +303,27 @@ enum WhereOperator {
 }
 
 type Work {
-  created_at: DateTime
-  document: JSONObject
-  id_account: ID
-  id_feature: ID
-  id_work: ID
-  level: Float
-  name: String
-  updated_at: DateTime
+  created_at: DateTime!
+  document: JSONObject!
+  has_code_dump: Boolean!
+  id_account: ID!
+  id_feature: ID!
+  id_repository: String!
+  id_work: ID!
+  level: Float!
+  name: String!
+  process_status: String!
+  process_type: String!
+  repository_name: String
+  updated_at: DateTime!
 }
 
-type WorkOutput {
+type WorkResponse {
   output: Work
-  status: StatusOutput!
+  status: Status!
 }
 
-type WorksOutput {
+type WorksResponse {
   output: [Work!]
-  status: StatusOutput!
+  status: Status!
 }

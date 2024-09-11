@@ -5,7 +5,7 @@ import { SettingsService } from "../../core/services/settings/settings.service";
 import { InterfaceException } from "../exceptions/interface.exception";
 import { ServerException } from "../exceptions/server.exception";
 
-import type { SessionHandlerPort } from "../ports/session.handler.port";
+import type { SessionServicePort } from "../ports/session.handler.port";
 import type { StatusModel } from "../interface/common.model";
 import type { JWTPayload } from "jose";
 import type { FastifyRequest, FastifyReply } from "fastify";
@@ -28,7 +28,7 @@ interface SessionIdentity extends JWTPayload {
 }
 
 interface SessionInput {
-  idAccount: string;
+  id_account: string;
   scope: string;
 }
 
@@ -37,9 +37,9 @@ interface SessionOutput {
 }
 
 @Injectable()
-export class SessionHandler
+export class SessionService
   implements
-    SessionHandlerPort<
+    SessionServicePort<
       FastifyRequest,
       FastifyReply,
       SessionInput,
@@ -127,7 +127,7 @@ export class SessionHandler
         const jti = uuidv4();
         const iat = Math.floor(Date.now() / 1000);
         return new SignJWT({
-          sub: input.idAccount,
+          sub: input.id_account,
           jti,
           iat,
           iss: this.settings.app.name,
@@ -140,9 +140,14 @@ export class SessionHandler
 
       const token = await signToken(input);
 
-      reply
-        .setCookie(session.auth.name, token, session.auth.options)
-        .setCookie(session.user.name, input.idAccount, session.user.options);
+      reply.setCookie(session.auth.name, token, session.auth.options).setCookie(
+        session.user.name,
+        JSON.stringify({
+          id_account: input.id_account,
+          scope: this.createScopeObject(input.scope),
+        }),
+        session.user.options,
+      );
 
       return {
         status: {
@@ -156,7 +161,7 @@ export class SessionHandler
         "SET_AUTHENTICATION_ERROR",
         400,
         "session handler internal error.",
-        "SessionHandler.create()",
+        "SessionService.create()",
         err,
       );
     }
@@ -252,14 +257,8 @@ export class SessionHandler
         session.auth.options,
       );
 
-      const userCookie = await this.unsignCookie(
-        request,
-        session.user.name,
-        session.user.options,
-      );
-
-      if (!authCookie || !userCookie) {
-        throw new Error("missing cookies");
+      if (!authCookie) {
+        throw new Error("missing auth cookie");
       }
       const identity = await this.verifyToken(authCookie, session.tokenSecret);
 
@@ -288,7 +287,7 @@ export class SessionHandler
           "INTERNAL_SERVER_ERROR",
           500,
           "session handler internal error.",
-          "SessionHandler.authorize()",
+          "SessionService.authorize()",
           err,
         );
       }

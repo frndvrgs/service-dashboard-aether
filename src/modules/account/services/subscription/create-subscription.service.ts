@@ -19,18 +19,35 @@ export class CreateSubscriptionService {
     const { account, input } = service;
 
     const accountResource = await this.accountRepository.read({
-      where: { idAccount: account },
+      where: { id_account: account },
     });
     if (!accountResource) {
       throw new AppException("NOT_FOUND", 404, "resource not found.", account);
     }
-    const newSubscription = new SubscriptionEntity();
 
-    newSubscription.idAccount = accountResource.idAccount;
-    (newSubscription.type = input.type),
-      (newSubscription.status = input.status);
+    const existsSubscription = await this.subscriptionRepository.exists({
+      where: { id_account: accountResource.id_account },
+    });
+    if (existsSubscription) {
+      throw new AppException(
+        "NOT_UNIQUE_VALUE",
+        409,
+        "a subscription already exists for this account.",
+        accountResource.id_account,
+      );
+    }
 
-    const resource = await this.subscriptionRepository.save(newSubscription);
+    const entity = new SubscriptionEntity();
+
+    entity.id_account = accountResource.id_account;
+    entity.type = input.type;
+    entity.status = input.status;
+
+    entity.document = {
+      ...input.document,
+    };
+
+    const resource = await this.subscriptionRepository.save(entity);
     return {
       status: {
         description: "SUBSCRIPTION_CREATED",

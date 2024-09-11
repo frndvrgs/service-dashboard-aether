@@ -11,17 +11,25 @@ export class UpdateProfileService {
   async execute(
     service: ContentTypes.Payload.Service.UpdateProfile.Input,
   ): Promise<ContentTypes.Payload.Service.UpdateProfile.Output> {
-    const { profile, input } = service;
+    const { account, input } = service;
 
     const resource = await this.repository.read({
-      where: { idProfile: profile },
+      where: { id_account: account },
     });
+
     if (!resource) {
-      throw new AppException("NOT_FOUND", 404, "resource not found.", profile);
+      throw new AppException(
+        "NOT_FOUND",
+        404,
+        "resource not found.",
+        `reference: ${account}`,
+      );
     }
 
+    const updateData = { ...resource };
+
     // check if username input already exists
-    if (input.username != null) {
+    if (input.username) {
       const existsUsername = await this.repository.exists({
         where: { username: input.username },
       });
@@ -33,9 +41,21 @@ export class UpdateProfileService {
           input.username,
         );
       }
+      updateData.username = input.username;
     }
 
-    Object.assign(resource, input);
+    if (input.name) {
+      updateData.name = input.name;
+    }
+
+    if (input.document) {
+      updateData.document = {
+        ...updateData.document,
+        ...input.document,
+      };
+    }
+
+    Object.assign(resource, updateData);
 
     const updatedResource = await this.repository.save(resource);
 

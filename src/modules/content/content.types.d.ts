@@ -4,6 +4,7 @@ import type { FeatureEntity } from "./domain/feature.entity";
 import type {
   CreateProfileInput,
   CreateSessionInput,
+  UpdateProfileInput,
 } from "./interface/v1/profile.dto";
 import type {
   CreateFeatureInput,
@@ -39,8 +40,8 @@ namespace ContentTypes {
 
       namespace CreateProfile {
         interface Input {
-          account: string;
-          input: CreateProfileInput;
+          account?: string;
+          input?: CreateProfileInput;
         }
 
         interface Output extends BaseOutput {
@@ -50,7 +51,7 @@ namespace ContentTypes {
 
       namespace UpdateProfile {
         interface Input {
-          profile: string;
+          account?: string;
           input: UpdateProfileInput;
         }
 
@@ -61,7 +62,7 @@ namespace ContentTypes {
 
       namespace RemoveProfile {
         interface Input {
-          profile: string;
+          account: string;
         }
 
         type Output = BaseOutput;
@@ -100,7 +101,7 @@ namespace ContentTypes {
       namespace UpdateFeature {
         interface Input {
           feature: string;
-          input: UpdateFeature;
+          input: UpdateFeatureInput;
         }
 
         interface Output extends BaseOutput {

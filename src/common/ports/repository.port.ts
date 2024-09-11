@@ -7,5 +7,5 @@ export interface RepositoryPort<
   read(options: CommonTypes.Payload.QueryOptions<T>): Promise<T | null>;
   exists(options: FindOneOptions<T>): Promise<boolean>;
   save(entity: T): Promise<T>;
-  remove(idAccount: T["idAccount"]): Promise<DeleteResult>;
+  remove<K extends keyof T>(fieldName: K, value: T[K]): Promise<DeleteResult>;
 }
