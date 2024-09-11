@@ -41,10 +41,11 @@ input CreateSubscriptionInput {
 
 input CreateWorkInput {
   document: JSONObject
-  id_pull_request: String!
+  id_pull_request: String
   id_repository: String!
   level: Float
   name: String!
+  pull_request_name: String
   repository_name: String
 }
 
@@ -309,13 +310,14 @@ type Work {
   has_code_dump: Boolean!
   id_account: ID!
   id_feature: ID!
-  id_pull_request: String!
+  id_pull_request: String
   id_repository: String!
   id_work: ID!
   level: Float!
   name: String!
   process_status: String!
   process_type: String!
+  pull_request_name: String
   repository_name: String
   updated_at: DateTime!
 }

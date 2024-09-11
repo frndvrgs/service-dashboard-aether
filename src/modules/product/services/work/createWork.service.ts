@@ -115,6 +115,7 @@ export class CreateWorkService {
     workEntity.id_pull_request = input.id_pull_request;
     workEntity.name = input.name;
     workEntity.repository_name = input.repository_name;
+    workEntity.pull_request_name = input.pull_request_name;
     workEntity.process_type = featureResource.process_type;
 
     // check if has a custom initial level value

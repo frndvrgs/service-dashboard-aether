@@ -40,6 +40,9 @@ export class WorkEntity implements CommonTypes.BaseEntity {
   @Column({ nullable: true })
   repository_name?: string;
 
+  @Column({ nullable: true })
+  pull_request_name?: string;
+
   @Column()
   process_type!: string;
 

@@ -25,8 +25,8 @@ export class Work implements Partial<WorkEntity> {
   @Column()
   id_repository!: string;
 
-  @Field()
-  @Column({ nullable: true })
+  @Field({ nullable: true })
+  @Column()
   id_pull_request?: string;
 
   @Field()
@@ -43,6 +43,9 @@ export class Work implements Partial<WorkEntity> {
 
   @Field({ nullable: true })
   repository_name?: string;
+
+  @Field({ nullable: true })
+  pull_request_name?: string;
 
   @Field()
   @Column()
@@ -71,10 +74,15 @@ export class CreateWorkInput {
   @IsString()
   id_repository!: string;
 
-  @Field()
+  @Field({ nullable: true })
   @IsOptional()
-  @Column({ nullable: true })
+  @Column()
   id_pull_request?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  pull_request_name?: string;
 
   @Field({ nullable: true })
   @IsOptional()
