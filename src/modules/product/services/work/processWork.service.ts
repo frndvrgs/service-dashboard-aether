@@ -292,6 +292,79 @@ export class ProcessWorkService {
     return subscription;
   }
 
+  analyzePullRequest(
+    input: ProductTypes.Payload.Service.Audit.AnalyzePullRequestRequest,
+  ): Subscription {
+    let subscription: Subscription;
+    const command = "analyze_pull_request";
+
+    subscription = this.auditService
+      .analyzeSourceCode(input)
+      .pipe(
+        tap(async (response) => {
+          if (response.process_status === "error") {
+            this.auditGateway.notifyError(
+              response.id_work,
+              command,
+              response.process_status,
+              { content: response.error_message },
+            );
+            subscription.unsubscribe();
+          }
+
+          if (response.process_status === "interrupted") {
+            this.auditGateway.notifyInterruption(
+              response.id_work,
+              command,
+              response.process_status,
+            );
+            subscription.unsubscribe();
+          }
+
+          if (response.process_status === "completed") {
+            if (response.result) {
+              const result = await this.formatAndSaveResult(
+                response.id_work,
+                response.id_repository,
+                response.result,
+                command,
+              );
+              this.auditGateway.notifySuccess(
+                response.id_work,
+                command,
+                response.process_status,
+                { content: result },
+              );
+              subscription.unsubscribe();
+            } else {
+              throw new AppException(
+                "INTERNAL_SERVER_ERROR",
+                500,
+                "analysis result not received from audit server after completed.",
+                input.id_work,
+              );
+            }
+          } else {
+            this.auditGateway.notifyUpdate(
+              response.id_work,
+              command,
+              response.process_status,
+            );
+          }
+        }),
+        catchError((error) => {
+          subscription.unsubscribe();
+
+          return throwError(() => error);
+        }),
+      )
+      .subscribe({
+        error: (error) => this.handleError(input.id_work, error, command),
+      });
+
+    return subscription;
+  }
+
   watchPullRequests(
     input: ProductTypes.Payload.Service.Audit.WatchPullRequestsRequest,
   ): Subscription {

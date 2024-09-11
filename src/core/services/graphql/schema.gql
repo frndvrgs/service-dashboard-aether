@@ -41,6 +41,7 @@ input CreateSubscriptionInput {
 
 input CreateWorkInput {
   document: JSONObject
+  id_pull_request: String!
   id_repository: String!
   level: Float
   name: String!
@@ -308,6 +309,7 @@ type Work {
   has_code_dump: Boolean!
   id_account: ID!
   id_feature: ID!
+  id_pull_request: String!
   id_repository: String!
   id_work: ID!
   level: Float!

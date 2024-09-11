@@ -25,6 +25,9 @@ export class WorkEntity implements CommonTypes.BaseEntity {
   @Column()
   id_repository!: string;
 
+  @Column({ nullable: true })
+  id_pull_request?: string;
+
   @CreateDateColumn()
   created_at!: Date;
 
