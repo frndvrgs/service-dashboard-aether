@@ -105,6 +105,22 @@ namespace ProductTypes {
           error_message?: string;
         }
 
+        interface AnalyzePullRequestRequest {
+          id_work: string;
+          id_repository: string;
+          id_pull_request: string;
+          code_dump: string;
+        }
+
+        interface AnalyzePullRequestResponse {
+          id_work: string;
+          id_repository: string;
+          id_pull_request: string;
+          process_status: string;
+          result?: string;
+          error_message?: string;
+        }
+
         interface WatchPullRequestsRequest {
           id_work: string;
           id_repository: string;

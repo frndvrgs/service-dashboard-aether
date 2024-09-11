@@ -105,6 +105,45 @@ export class CommandWorkService {
 
         break;
 
+      case "analyze_pull_request":
+        if (!sourceResource?.code_dump) {
+          throw new AppException(
+            "NOT_FOUND",
+            404,
+            "code_dump not found for this repository.",
+            workResource.id_repository,
+          );
+        }
+
+        if (!accountResource.github_token) {
+          throw new AppException(
+            "NOT_FOUND",
+            404,
+            "github_token not found for this account.",
+            account,
+          );
+        }
+
+        if (!workResource.id_pull_request) {
+          throw new AppException(
+            "NOT_FOUND",
+            404,
+            "pull requests are required for this command.",
+            account,
+          );
+        }
+
+        this.processWorkService.watchPullRequests({
+          id_work: workResource.id_work,
+          id_repository: workResource.id_repository,
+          code_dump: sourceResource.code_dump,
+          github_token: this.encryptionService.decrypt(
+            accountResource.github_token,
+          ),
+        });
+
+        break;
+
       case "watch_pull_requests":
         if (!sourceResource?.code_dump) {
           throw new AppException(

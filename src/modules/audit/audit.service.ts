@@ -34,6 +34,12 @@ export class AuditService implements OnModuleInit {
     return this.auditServiceClient.analyzeSourceCode(request);
   }
 
+  analyzePullRequest(
+    request: ProductTypes.Payload.Service.Audit.AnalyzePullRequestRequest,
+  ): Observable<ProductTypes.Payload.Service.Audit.AnalyzePullRequestResponse> {
+    return this.auditServiceClient.analyzePullRequest(request);
+  }
+
   watchPullRequests(
     request: ProductTypes.Payload.Service.Audit.WatchPullRequestsRequest,
   ): Observable<ProductTypes.Payload.Service.Audit.WatchPullRequestsResponse> {

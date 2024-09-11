@@ -9,6 +9,9 @@ export interface AuditClient {
   analyzeSourceCode(
     input: ProductTypes.Payload.Service.Audit.AnalyzeSourceCodeRequest,
   ): Observable<ProductTypes.Payload.Service.Audit.AnalyzeSourceCodeResponse>;
+  analyzePullRequest(
+    input: ProductTypes.Payload.Service.Audit.AnalyzePullRequestRequest,
+  ): Observable<ProductTypes.Payload.Service.Audit.AnalyzePullRequestResponse>;
   watchPullRequests(
     input: ProductTypes.Payload.Service.Audit.WatchPullRequestsRequest,
   ): Observable<ProductTypes.Payload.Service.Audit.WatchPullRequestsResponse>;

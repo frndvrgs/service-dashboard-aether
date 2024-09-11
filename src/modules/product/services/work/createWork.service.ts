@@ -74,6 +74,18 @@ export class CreateWorkService {
       );
     }
 
+    if (
+      input.id_pull_request &&
+      featureResource.process_type !== "PULL_REQUEST"
+    ) {
+      throw new AppException(
+        "NOT_ALLOWED",
+        403,
+        "id_pull_request is required for pull request works.",
+        `feature process_type: ${featureResource.process_type}`,
+      );
+    }
+
     let sourceResource: SourceEntity | null;
 
     // check if this repository is already stored
@@ -100,10 +112,10 @@ export class CreateWorkService {
     workEntity.id_account = accountResource.id_account;
     workEntity.id_feature = featureResource.id_feature;
     workEntity.id_repository = input.id_repository;
+    workEntity.id_pull_request = input.id_pull_request;
     workEntity.name = input.name;
     workEntity.repository_name = input.repository_name;
     workEntity.process_type = featureResource.process_type;
-    workEntity.process_status = "idle";
 
     // check if has a custom initial level value
     if (input.level) {

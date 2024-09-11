@@ -26,6 +26,10 @@ export class Work implements Partial<WorkEntity> {
   id_repository!: string;
 
   @Field()
+  @Column({ nullable: true })
+  id_pull_request?: string;
+
+  @Field()
   @CreateDateColumn()
   created_at!: Date;
 
@@ -66,6 +70,11 @@ export class CreateWorkInput {
   @Field()
   @IsString()
   id_repository!: string;
+
+  @Field()
+  @IsOptional()
+  @Column({ nullable: true })
+  id_pull_request?: string;
 
   @Field({ nullable: true })
   @IsOptional()
